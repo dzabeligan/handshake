@@ -11,7 +11,8 @@ extern "C" {
 
 #include <stdlib.h>
 
-typedef int (*HostRecvSentinel)(unsigned char *packet, const int bytesRead, const char *endTag);
+typedef int (*HostRecvSentinel)(
+    unsigned char* packet, const int bytesRead, const char* endTag);
 
 int comSendReceive(unsigned char* response, const size_t rSize,
     const unsigned char* request, const size_t len, const char* ip,

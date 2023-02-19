@@ -126,14 +126,14 @@ ezxml_t ezxml_new(const char* name);
 ezxml_t ezxml_add_child(ezxml_t xml, const char* name, size_t off);
 
 // wrapper for ezxml_add_child() that strdup()s name
-#define ezxml_add_child_d(xml, name, off) \
+#define ezxml_add_child_d(xml, name, off)                                      \
     ezxml_set_flag(ezxml_add_child(xml, strdup(name), off), EZXML_NAMEM)
 
 // sets the character content for the given tag and returns the tag
 ezxml_t ezxml_set_txt(ezxml_t xml, const char* txt);
 
 // wrapper for ezxml_set_txt() that strdup()s txt
-#define ezxml_set_txt_d(xml, txt) \
+#define ezxml_set_txt_d(xml, txt)                                              \
     ezxml_set_flag(ezxml_set_txt(xml, strdup(txt)), EZXML_TXTM)
 
 // Sets the given tag attribute or adds a new attribute if not found. A value
@@ -141,7 +141,7 @@ ezxml_t ezxml_set_txt(ezxml_t xml, const char* txt);
 ezxml_t ezxml_set_attr(ezxml_t xml, const char* name, const char* value);
 
 // Wrapper for ezxml_set_attr() that strdup()s name/value. Value cannot be NULL
-#define ezxml_set_attr_d(xml, name, value) \
+#define ezxml_set_attr_d(xml, name, value)                                     \
     ezxml_set_attr(ezxml_set_flag(xml, EZXML_DUP), strdup(name), strdup(value))
 
 // sets a flag for the given tag and returns the tag
