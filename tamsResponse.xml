@@ -1,0 +1,60 @@
+<efttran>
+    <tran>
+        <!-- POS Status -->
+        <result>0</result>
+        <status>1</status>
+
+        <!-- TID (The main thing `:)`) -->
+        <message>2044LTS6</message>
+
+        <!-- Terminals -->
+        <Amp>0004</Amp>
+        <MoreFun>0002</MoreFun>
+        <NewLand>0003</NewLand>
+        <newpos>9003</newpos>
+        <NexGo>0001</NexGo>
+        <PAX>8580</PAX>
+        <PAYSHARP>1000</PAYSHARP>
+        <verifones>9001</verifones>
+
+        <!-- Servers -->
+        <PORT_TYPE>SSL</PORT_TYPE>
+        <TAMSPUBLIC>basehuge.itexapp.com</TAMSPUBLIC>
+        <EPMSPRIVATE_SSL>172.16.85.6;5043</EPMSPRIVATE_SSL>
+        <EPMSPUBLIC_SSL>197.253.19.75;5001</EPMSPUBLIC_SSL>
+        <EPMSPUBLIC>197.253.19.75;5000</EPMSPUBLIC>
+        <EPMSPRIVATE>172.16.85.6;5042</EPMSPRIVATE>
+        <POSVASPUBLIC>196.6.103.18;5007</POSVASPUBLIC>
+        <POSVASPUBLIC_SSL>197.253.19.75;5003</POSVASPUBLIC_SSL>
+        <POSVASPRIVATE_SSL>172.16.85.7;5017</POSVASPRIVATE_SSL>
+        <POSVASPRIVATE>172.16.85.7;5007</POSVASPRIVATE>
+        <REMOTEUPGRADE_PUBLIC>197.253.19.76</REMOTEUPGRADE_PUBLIC>
+        <REMOTEUPGRADE_PRIVATE>172.16.85.3</REMOTEUPGRADE_PRIVATE>
+        <CallhomePort>7004</CallhomePort>
+        <CallhomeTime>60</CallhomeTime>
+        <CallhomeIp>197.253.19.75</CallhomeIp>
+        <CallhomePosvasIp>197.253.19.75</CallhomePosvasIp>
+        <CallhomePosvasPort>7003</CallhomePosvasPort>
+        <VASURL>vasapi.itexapp.com</VASURL>
+        <!-- Not used (Not sure what to do with this) -->
+        <MIDDLEWARE_PUBLIC>197.253.19.75;80</MIDDLEWARE_PUBLIC>
+        <MIDDLEWARE_PRIVATE>172.16.85.3;4839</MIDDLEWARE_PRIVATE>
+
+        <!-- Rest -->
+        <accountnum>0122333333</accountnum>
+        <accountSelection>1</accountSelection>
+        <Address>|</Address>
+        <AggregatorName>ITEX-PICKNPAY</AggregatorName>
+        <balance>N 0.00</balance>
+        <commission>N 0.00</commission>
+        <macros_tid>12345678</macros_tid>
+        <PRE-CONNECT>1</PRE-CONNECT>
+        <PREFIX>POSVAS</PREFIX>
+        <POS_SUPPORT>;;</POS_SUPPORT>
+        <RRN>37355066</RRN>
+        <STAMP_DUTY>5000</STAMP_DUTY>
+        <STAMP_DUTY_THRESHOLD>100000</STAMP_DUTY_THRESHOLD>
+        <STAMP_LABEL>Stamp Duty</STAMP_LABEL>
+        <TERMAPPTYPE>MERCHANT</TERMAPPTYPE>
+    </tran>
+</efttran>

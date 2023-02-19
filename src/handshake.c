@@ -14,11 +14,6 @@
 
 #include "../inc/handshake.h"
 
-static const char* TRANS_ADVICE_PATH
-    = "tams/eftpos/devinterface/transactionadvice.php";
-static const char* TAMS_HOME_IP = "197.253.19.75";
-static const int TAMS_HOME_PORT = 443;
-
 /**
  * @brief Check that data needed for mapping tid is set
  *
@@ -44,8 +39,6 @@ static short checkMapTidData(handshake_InitData* initData)
  */
 void Handshake_Init(Handshake* handshake, handshake_InitData* initData)
 {
-    const char* DEFAULT_TID = "12345678";
-
     memset(handshake, '\0', sizeof(Handshake));
 
     handshake->error.code = ERROR_CODE_HANDSHAKE_INIT_ERROR;
@@ -68,8 +61,7 @@ void Handshake_Init(Handshake* handshake, handshake_InitData* initData)
         return;
     }
 
-    strncpy(handshake->tid, initData->tid[0] ? initData->tid : DEFAULT_TID,
-        sizeof(handshake->tid));
+    strncpy(handshake->tid, initData->tid, sizeof(handshake->tid));
     if (handshake->mapTid == HANDSHAKE_MAPTID_TRUE
         && !checkMapTidData(initData)) {
         snprintf(handshake->error.message, sizeof(handshake->error.message) - 1,
@@ -85,59 +77,19 @@ void Handshake_Init(Handshake* handshake, handshake_InitData* initData)
     memset(handshake->error.message, '\0', sizeof(handshake->error.message));
 }
 
-static ssize_t buildTamsHomeRequest(
-    Handshake* handshake, char* requestBuf, size_t bufLen)
+static void Handshake_PlatformHandshake(Handshake* handshake)
 {
-    ssize_t pos = 0;
-
-    pos += snprintf(requestBuf, bufLen,
-        "GET "
-        "/%s?action=TAMS_WEBAPI&termID=%s&posUID=%s&ver=%s%s&model=%s&control="
-        "TamsSecurity\r\n",
-        TRANS_ADVICE_PATH, handshake->tid, handshake->deviceInfo.posUid,
-        handshake->appInfo.name, handshake->appInfo.version,
-        handshake->deviceInfo.model);
-    pos += snprintf(&requestBuf[pos], bufLen - pos, "Host: %s:%d",
-        handshake->host.host, handshake->host.port);
-    pos += snprintf(&requestBuf[pos], bufLen - pos, "%s", "\r\n\r\n");
-
-    return pos;
-}
-
-static handshake_Status Handshake_MapTid(Handshake* handshake)
-{
-    handshake_Status status = HANDSHAKE_MAPTID_FAILURE;
-    char requestBuf[0x1000] = { '\0' };
-    unsigned char responseBuf[0x1000] = { '\0' };
-    ssize_t pos = 0;
-
-    pos = buildTamsHomeRequest(handshake, requestBuf, sizeof(requestBuf) - 1);
-    if (pos <= 0)
-        return status;
-
-    debug("Request: '%s'", requestBuf);
-    handshake->comSendReceive(responseBuf, sizeof(responseBuf) - 1,
-        (unsigned char*)requestBuf, sizeof(requestBuf) - 1, TAMS_HOME_IP,
-        TAMS_HOME_PORT, handshake->hostSentinel, "</efttran>");
-    debug("Response: '%s'", responseBuf);
-
-    return status;
-}
-
-static handshake_Status Handshake_PlatformHandshake(Handshake* handshake)
-{
-    handshake_Status status = HANDSHAKE_FAILURE;
     (void)handshake;
 
-    return status;
+    return;
 }
 
-handshake_Status Handshake_Run(Handshake* handshake)
+void Handshake_Run(Handshake* handshake)
 {
     if (handshake->mapTid == HANDSHAKE_MAPTID_TRUE) {
-        handshake_Status status = Handshake_MapTid(handshake);
-        if (status != HANDSHAKE_MAPTID_SUCCESS)
-            return status;
+        Handshake_MapTid(handshake);
+        if (handshake->error.code != ERROR_CODE_NO_ERROR)
+            return;
     }
-    return Handshake_PlatformHandshake(handshake);
+    Handshake_PlatformHandshake(handshake);
 }
