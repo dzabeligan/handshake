@@ -10,7 +10,6 @@
 static int isResponseSentinel(
     unsigned char* packet, const int bytesRead, const char* endTag)
 {
-
     int result = 0;
 
     if (bytesRead) {
@@ -36,7 +35,7 @@ static int isResponseSentinel(
 
 const char* testHandshakeInit_comSendReceiveNotSet()
 {
-    Handshake handshake;
+    Handshake_t handshake;
     handshake_InitData initData;
 
     memset(&initData, '\0', sizeof(initData));
@@ -44,7 +43,7 @@ const char* testHandshakeInit_comSendReceiveNotSet()
     initData.comSendReceive = NULL;
     initData.hostSentinel = isResponseSentinel;
 
-    Handshake_Init(&handshake, &initData);
+    Handshake(&handshake, &initData, HANDSHAKE_OPERATIONS_ALL);
     log_err("%s", handshake.error.message);
     mu_assert(handshake.error.code == ERROR_CODE_HANDSHAKE_INIT_ERROR, "%s",
         handshake.error.message);
@@ -52,10 +51,9 @@ const char* testHandshakeInit_comSendReceiveNotSet()
     return NULL;
 }
 
-// TODO: handle when port in host struct is not set
 const char* testHandshakeInit_hostNotSet()
 {
-    Handshake handshake;
+    Handshake_t handshake;
     handshake_InitData initData;
 
     memset(&initData, '\0', sizeof(initData));
@@ -63,7 +61,7 @@ const char* testHandshakeInit_hostNotSet()
     initData.comSendReceive = comSendReceive;
     initData.hostSentinel = isResponseSentinel;
 
-    Handshake_Init(&handshake, &initData);
+    Handshake(&handshake, &initData, HANDSHAKE_OPERATIONS_ALL);
     log_err("%s", handshake.error.message);
     mu_assert(handshake.error.code == ERROR_CODE_HANDSHAKE_INIT_ERROR, "%s",
         handshake.error.message);
@@ -73,7 +71,7 @@ const char* testHandshakeInit_hostNotSet()
 
 const char* testHandshakeInit_mapTidTrue_dataNotSet()
 {
-    Handshake handshake;
+    Handshake_t handshake;
     handshake_InitData initData;
 
     memset(&initData, '\0', sizeof(initData));
@@ -84,10 +82,10 @@ const char* testHandshakeInit_mapTidTrue_dataNotSet()
     initData.platform = PLATFORM_NIBSS;
     initData.mapTid = HANDSHAKE_MAPTID_TRUE;
     strcpy(initData.tid, "");
-    strcpy(initData.host.host, "197.253.19.75");
-    initData.host.port = 443;
+    strcpy(initData.mapTidHost.hostUrl, "197.253.19.75");
+    initData.mapTidHost.port = 443;
 
-    Handshake_Init(&handshake, &initData);
+    Handshake(&handshake, &initData, HANDSHAKE_OPERATIONS_ALL);
     log_err("%s", handshake.error.message);
     mu_assert(handshake.error.code == ERROR_CODE_HANDSHAKE_INIT_ERROR, "%s",
         handshake.error.message);
@@ -97,7 +95,7 @@ const char* testHandshakeInit_mapTidTrue_dataNotSet()
 
 const char* testHandshakeInit_mapTidTrue()
 {
-    Handshake handshake;
+    Handshake_t handshake;
     handshake_InitData initData;
 
     memset(&initData, '\0', sizeof(initData));
@@ -107,17 +105,18 @@ const char* testHandshakeInit_mapTidTrue()
 
     initData.platform = PLATFORM_NIBSS;
     initData.mapTid = HANDSHAKE_MAPTID_TRUE;
-    strcpy(initData.tid, "");
+    strcpy(initData.tid, "2033GP24");
     strcpy(initData.appInfo.name, "Tamslite");
     strcpy(initData.appInfo.version, "0.0.1");
     strcpy(initData.deviceInfo.model, "LaptopPort");
-    strcpy(initData.deviceInfo.posUid, "123456789");
-    strcpy(initData.host.host, "197.253.19.75");
-    initData.host.port = 443;
+    strcpy(initData.deviceInfo.posUid, "346228245");
+    strcpy(initData.mapTidHost.hostUrl, "197.253.19.75");
+    initData.mapTidHost.port = 443;
 
-    Handshake_Init(&handshake, &initData);
+    Handshake(&handshake, &initData, HANDSHAKE_OPERATIONS_ALL);
     mu_assert(handshake.error.code == ERROR_CODE_NO_ERROR, "%s",
         handshake.error.message);
+    logTamsResponse(&handshake.tamsResponse);
 
     return NULL;
 }
