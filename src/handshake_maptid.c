@@ -78,7 +78,7 @@ typedef enum { STATUS_READY, STATUS_NOT_READY } pos_status;
  * @return ssize_t
  */
 static ssize_t buildTamsHomeRequest(
-    Handshake* handshake, char* requestBuf, size_t bufLen)
+    Handshake_t* handshake, char* requestBuf, size_t bufLen)
 {
     const char* TRANS_ADVICE_PATH
         = "tams/eftpos/devinterface/transactionadvice.php";
@@ -93,7 +93,7 @@ static ssize_t buildTamsHomeRequest(
         handshake->appInfo.name, handshake->appInfo.version,
         handshake->deviceInfo.model);
     pos += snprintf(&requestBuf[pos], bufLen - pos, "Host: %s:%d",
-        handshake->host.host, handshake->host.port);
+        handshake->mapTidHost.hostUrl, handshake->mapTidHost.port);
     pos += snprintf(&requestBuf[pos], bufLen - pos, "%s", "\r\n\r\n");
 
     return pos;
@@ -106,7 +106,7 @@ static ssize_t buildTamsHomeRequest(
  * @param root
  * @return short
  */
-static short checkTamsError(Handshake* handshake, ezxml_t root)
+static short checkTamsError(Handshake_t* handshake, ezxml_t root)
 {
     ezxml_t msgTag, errorTag;
 
@@ -120,7 +120,7 @@ static short checkTamsError(Handshake* handshake, ezxml_t root)
 
     if (msgTag) {
         snprintf(handshake->error.message, sizeof(handshake->error.message) - 1,
-            msgTag->txt);
+            "%s", msgTag->txt);
         return 1;
     }
 
@@ -134,7 +134,7 @@ static short checkTamsError(Handshake* handshake, ezxml_t root)
  * @param tranTag
  * @return pos_status
  */
-static pos_status getPosStatus(Handshake* handshake, ezxml_t tranTag)
+static pos_status getPosStatus(Handshake_t* handshake, ezxml_t tranTag)
 {
     ezxml_t item = NULL;
 
@@ -262,8 +262,9 @@ static short getTerminalFromTamsResponse(
  * @param publicTag
  * @return short
  */
-static short getServersFromTamsResponseHelper(Server* server, ezxml_t tranTag,
-    const char* privateTag, const char* publicTag)
+static short getServersFromTamsResponseHelper(MiddlewareServer* server,
+    ezxml_t tranTag, const char* privateTag, const char* publicTag,
+    const char* privateSslTag, const char* publicSslTag)
 {
     ezxml_t item = NULL;
     char portBuf[16] = { '\0' };
@@ -272,17 +273,105 @@ static short getServersFromTamsResponseHelper(Server* server, ezxml_t tranTag,
         return EXIT_FAILURE;
     }
     memset(portBuf, '\0', sizeof(portBuf));
-    splitStr(server->privateIp, sizeof(server->privateIp), portBuf,
-        sizeof(portBuf), item->txt, ';');
-    server->privatePort = atoi(portBuf);
+    splitStr(server->plain.privateServer.ip, sizeof(server->plain.privateServer.ip),
+        portBuf, sizeof(portBuf), item->txt, ';');
+    server->plain.privateServer.port = atoi(portBuf);
 
     if ((item = ezxml_child(tranTag, publicTag)) == NULL) {
         return EXIT_FAILURE;
     }
     memset(portBuf, '\0', sizeof(portBuf));
-    splitStr(server->publicIp, sizeof(server->publicIp), portBuf,
+    splitStr(server->plain.publicServer.ip, sizeof(server->plain.publicServer.ip), portBuf,
         sizeof(portBuf), item->txt, ';');
-    server->publicPort = atoi(portBuf);
+    server->plain.publicServer.port = atoi(portBuf);
+
+    if ((item = ezxml_child(tranTag, privateSslTag)) == NULL) {
+        return EXIT_FAILURE;
+    }
+    memset(portBuf, '\0', sizeof(portBuf));
+    splitStr(server->ssl.privateServer.ip, sizeof(server->ssl.privateServer.ip), portBuf,
+        sizeof(portBuf), item->txt, ';');
+    server->ssl.privateServer.port = atoi(portBuf);
+
+    if ((item = ezxml_child(tranTag, publicSslTag)) == NULL) {
+        return EXIT_FAILURE;
+    }
+    memset(portBuf, '\0', sizeof(portBuf));
+    splitStr(server->ssl.publicServer.ip, sizeof(server->ssl.publicServer.ip), portBuf,
+        sizeof(portBuf), item->txt, ';');
+    server->ssl.publicServer.port = atoi(portBuf);
+
+    return EXIT_SUCCESS;
+}
+
+static short getMiddlewareServers(TAMSResponse* tamsResponse, ezxml_t tranTag)
+{
+    if (getServersFromTamsResponseHelper(&tamsResponse->servers.epms, tranTag,
+            TAMS_EPMSPRIVATE_TAG, TAMS_EPMSPUBLIC_TAG, TAMS_EPMSPRIVATE_SSL_TAG,
+            TAMS_EPMSPUBLIC_SSL_TAG)
+        != EXIT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
+
+    if (getServersFromTamsResponseHelper(&tamsResponse->servers.posvas, tranTag,
+            TAMS_POSVASPRIVATE_TAG, TAMS_POSVASPUBLIC_TAG,
+            TAMS_POSVASPRIVATE_SSL_TAG, TAMS_POSVASPUBLIC_SSL_TAG)
+        != EXIT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
+
+    return EXIT_SUCCESS;
+}
+
+static short getRemoteUpgradeServer(TAMSResponse* tamsResponse, ezxml_t tranTag)
+{
+    ezxml_t item = NULL;
+
+    if ((item = ezxml_child(tranTag, TAMS_REMOTEUPGRADE_PUBLIC_TAG)) == NULL) {
+        return EXIT_FAILURE;
+    }
+    strncpy(tamsResponse->servers.remoteUpgrade.publicServer.ip, item->txt,
+        sizeof(tamsResponse->servers.remoteUpgrade.publicServer.ip));
+
+    if ((item = ezxml_child(tranTag, TAMS_REMOTEUPGRADE_PRIVATE_TAG)) == NULL) {
+        return EXIT_FAILURE;
+    }
+    strncpy(tamsResponse->servers.remoteUpgrade.privateServer.ip, item->txt,
+        sizeof(tamsResponse->servers.remoteUpgrade.privateServer.ip));
+
+    return EXIT_SUCCESS;
+}
+
+static short getCallhomeServers(TAMSResponse* tamsResponse, ezxml_t tranTag)
+{
+    ezxml_t item = NULL;
+
+    if ((item = ezxml_child(tranTag, TAMS_CALLHOME_IP_TAG)) == NULL) {
+        return EXIT_FAILURE;
+    }
+    strncpy(tamsResponse->servers.callhome.ip, item->txt,
+        sizeof(tamsResponse->servers.callhome.ip));
+
+    if ((item = ezxml_child(tranTag, TAMS_CALLHOME_PORT_TAG)) == NULL) {
+        return EXIT_FAILURE;
+    }
+    tamsResponse->servers.callhome.port = atoi(item->txt);
+
+    if ((item = ezxml_child(tranTag, TAMS_POSVAS_CALLHOME_IP_TAG)) == NULL) {
+        return EXIT_FAILURE;
+    }
+    strncpy(tamsResponse->servers.callhomePosvas.ip, item->txt,
+        sizeof(tamsResponse->servers.callhomePosvas.ip));
+
+    if ((item = ezxml_child(tranTag, TAMS_POSVAS_CALLHOME_PORT_TAG)) == NULL) {
+        return EXIT_FAILURE;
+    }
+    tamsResponse->servers.callhomePosvas.port = atoi(item->txt);
+
+    if ((item = ezxml_child(tranTag, TAMS_CALLHOME_TIME_TAG)) == NULL) {
+        return EXIT_FAILURE;
+    }
+    tamsResponse->servers.callhomeTime = atoi(item->txt);
 
     return EXIT_SUCCESS;
 }
@@ -317,71 +406,8 @@ static short getServersFromTamsResponse(
     if ((item = ezxml_child(tranTag, TAMS_TAMSPUBLIC_TAG)) == NULL) {
         return EXIT_FAILURE;
     }
-    strncpy(tamsResponse->servers.tams.publicIp, item->txt,
-        sizeof(tamsResponse->servers.tams.publicIp));
-
-    if (getServersFromTamsResponseHelper(&tamsResponse->servers.epmsPlain,
-            tranTag, TAMS_EPMSPRIVATE_TAG, TAMS_EPMSPUBLIC_TAG)
-        != EXIT_SUCCESS) {
-        return EXIT_FAILURE;
-    }
-
-    if (getServersFromTamsResponseHelper(&tamsResponse->servers.epmsSsl,
-            tranTag, TAMS_EPMSPRIVATE_SSL_TAG, TAMS_EPMSPUBLIC_SSL_TAG)
-        != EXIT_SUCCESS) {
-        return EXIT_FAILURE;
-    }
-
-    if (getServersFromTamsResponseHelper(&tamsResponse->servers.posvasPlain,
-            tranTag, TAMS_POSVASPRIVATE_TAG, TAMS_POSVASPUBLIC_TAG)
-        != EXIT_SUCCESS) {
-        return EXIT_FAILURE;
-    }
-
-    if (getServersFromTamsResponseHelper(&tamsResponse->servers.posvasSsl,
-            tranTag, TAMS_POSVASPRIVATE_SSL_TAG, TAMS_POSVASPUBLIC_SSL_TAG)
-        != EXIT_SUCCESS) {
-        return EXIT_FAILURE;
-    }
-
-    if ((item = ezxml_child(tranTag, TAMS_REMOTEUPGRADE_PUBLIC_TAG)) == NULL) {
-        return EXIT_FAILURE;
-    }
-    strncpy(tamsResponse->servers.remoteUpgrade.publicIp, item->txt,
-        sizeof(tamsResponse->servers.remoteUpgrade.publicIp));
-
-    if ((item = ezxml_child(tranTag, TAMS_REMOTEUPGRADE_PRIVATE_TAG)) == NULL) {
-        return EXIT_FAILURE;
-    }
-    strncpy(tamsResponse->servers.remoteUpgrade.privateIp, item->txt,
-        sizeof(tamsResponse->servers.remoteUpgrade.privateIp));
-
-    if ((item = ezxml_child(tranTag, TAMS_CALLHOME_IP_TAG)) == NULL) {
-        return EXIT_FAILURE;
-    }
-    strncpy(tamsResponse->servers.callhome.publicIp, item->txt,
-        sizeof(tamsResponse->servers.callhome.publicIp));
-
-    if ((item = ezxml_child(tranTag, TAMS_CALLHOME_PORT_TAG)) == NULL) {
-        return EXIT_FAILURE;
-    }
-    tamsResponse->servers.callhome.publicPort = atoi(item->txt);
-
-    if ((item = ezxml_child(tranTag, TAMS_POSVAS_CALLHOME_IP_TAG)) == NULL) {
-        return EXIT_FAILURE;
-    }
-    strncpy(tamsResponse->servers.callhomePosvas.publicIp, item->txt,
-        sizeof(tamsResponse->servers.callhomePosvas.publicIp));
-
-    if ((item = ezxml_child(tranTag, TAMS_POSVAS_CALLHOME_PORT_TAG)) == NULL) {
-        return EXIT_FAILURE;
-    }
-    tamsResponse->servers.callhomePosvas.publicPort = atoi(item->txt);
-
-    if ((item = ezxml_child(tranTag, TAMS_CALLHOME_TIME_TAG)) == NULL) {
-        return EXIT_FAILURE;
-    }
-    tamsResponse->servers.callhomeTime = atoi(item->txt);
+    strncpy(tamsResponse->servers.tams.ip, item->txt,
+        sizeof(tamsResponse->servers.tams.ip));
 
     if ((item = ezxml_child(tranTag, TAMS_VASURL_TAG)) == NULL) {
         return EXIT_FAILURE;
@@ -389,27 +415,25 @@ static short getServersFromTamsResponse(
     strncpy(tamsResponse->servers.vasUrl, item->txt,
         sizeof(tamsResponse->servers.vasUrl));
 
+    if (getMiddlewareServers(tamsResponse, tranTag) != EXIT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
+
+    if (getRemoteUpgradeServer(tamsResponse, tranTag) != EXIT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
+
+    if (getCallhomeServers(tamsResponse, tranTag) != EXIT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
+
     return EXIT_SUCCESS;
 }
 
-/**
- * @brief Get the Tams Response object
- *
- * @param handshake
- * @param tranTag
- * @return short
- */
-static short getTamsResponse(Handshake* handshake, ezxml_t tranTag)
+static short getAccountInfoFromTamsResponse(
+    Handshake_t* handshake, ezxml_t tranTag)
 {
     ezxml_t item = NULL;
-
-    if ((item = ezxml_child(tranTag, TAMS_MESSAGE_TAG)) == NULL
-        || !isdigit(item->txt[0])) {
-        snprintf(handshake->error.message, sizeof(handshake->error.message) - 1,
-            "Unable to get %s tag (TID)", TAMS_MESSAGE_TAG);
-        return EXIT_FAILURE;
-    }
-    strncpy(handshake->tid, item->txt, sizeof(handshake->tid));
 
     if ((item = ezxml_child(tranTag, TAMS_ACCOUNT_TO_DEBIT_TAG)) == NULL) {
         snprintf(handshake->error.message, sizeof(handshake->error.message) - 1,
@@ -434,6 +458,14 @@ static short getTamsResponse(Handshake* handshake, ezxml_t tranTag)
     }
     handshake->tamsResponse.accountSelectionType = atoi(item->txt);
 
+    return EXIT_SUCCESS;
+}
+
+static short getCustomerInfoFromTamsResponse(
+    Handshake_t* handshake, ezxml_t tranTag)
+{
+    ezxml_t item = NULL;
+
     if ((item = ezxml_child(tranTag, TAMS_ADDRESS_TAG)) == NULL) {
         snprintf(handshake->error.message, sizeof(handshake->error.message) - 1,
             "Unable to get %s tag", TAMS_ADDRESS_TAG);
@@ -452,6 +484,56 @@ static short getTamsResponse(Handshake* handshake, ezxml_t tranTag)
     strncpy(handshake->tamsResponse.aggregatorName, item->txt,
         sizeof(handshake->tamsResponse.aggregatorName));
 
+    if ((item = ezxml_child(tranTag, TAMS_EMAIL_TAG)) == NULL) {
+        snprintf(handshake->error.message, sizeof(handshake->error.message) - 1,
+            "Unable to get %s tag", TAMS_EMAIL_TAG);
+        return EXIT_FAILURE;
+    }
+    strncpy(handshake->tamsResponse.email, item->txt,
+        sizeof(handshake->tamsResponse.email));
+
+    if ((item = ezxml_child(tranTag, TAMS_PHONE_TAG)) == NULL) {
+        snprintf(handshake->error.message, sizeof(handshake->error.message) - 1,
+            "Unable to get %s tag", TAMS_PHONE_TAG);
+        return EXIT_FAILURE;
+    }
+    strncpy(handshake->tamsResponse.phone, item->txt,
+        sizeof(handshake->tamsResponse.phone));
+
+    if ((item = ezxml_child(tranTag, TAMS_TERMAPPTYPE_TAG)) == NULL) {
+        snprintf(handshake->error.message, sizeof(handshake->error.message) - 1,
+            "Unable to get %s tag", TAMS_TERMAPPTYPE_TAG);
+        return EXIT_FAILURE;
+    }
+    handshake->tamsResponse.terminalAppType = strcmp(item->txt, "MERCHANT") == 0
+        ? TERMINAL_APP_TYPE_MERCHANT
+        : strcmp(item->txt, "AGENCY") == 0    ? TERMINAL_APP_TYPE_AGENT
+        : strcmp(item->txt, "CONVERTED") == 0 ? TERMINAL_APP_TYPE_CONVERTED
+                                              : TERMINAL_APP_TYPE_UNKNOWN;
+
+    if ((item = ezxml_child(tranTag, TAMS_USER_ID_TAG)) == NULL) {
+        snprintf(handshake->error.message, sizeof(handshake->error.message) - 1,
+            "Unable to get %s tag", TAMS_USER_ID_TAG);
+        return EXIT_FAILURE;
+    }
+    strncpy(handshake->tamsResponse.userId, item->txt,
+        sizeof(handshake->tamsResponse.userId));
+
+    return EXIT_SUCCESS;
+}
+
+static short getTamsResponseHelper(Handshake_t* handshake, ezxml_t tranTag)
+{
+    ezxml_t item = NULL;
+
+    if (getAccountInfoFromTamsResponse(handshake, tranTag) != EXIT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
+
+    if (getCustomerInfoFromTamsResponse(handshake, tranTag) != EXIT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
+
     if ((item = ezxml_child(tranTag, TAMS_BALANCE_TAG)) == NULL) {
         snprintf(handshake->error.message, sizeof(handshake->error.message) - 1,
             "Unable to get %s tag", TAMS_BALANCE_TAG);
@@ -468,26 +550,10 @@ static short getTamsResponse(Handshake* handshake, ezxml_t tranTag)
     strncpy(handshake->tamsResponse.commision, item->txt,
         sizeof(handshake->tamsResponse.commision));
 
-    if ((item = ezxml_child(tranTag, TAMS_EMAIL_TAG)) == NULL) {
-        snprintf(handshake->error.message, sizeof(handshake->error.message) - 1,
-            "Unable to get %s tag", TAMS_EMAIL_TAG);
-        return EXIT_FAILURE;
-    }
-    strncpy(handshake->tamsResponse.email, item->txt,
-        sizeof(handshake->tamsResponse.email));
-
     if ((item = ezxml_child(tranTag, TAMS_NOTIFICATION_ID_TAG_OPT)) != NULL) {
         strncpy(handshake->tamsResponse.notificationId, item->txt,
             sizeof(handshake->tamsResponse.notificationId));
     }
-
-    if ((item = ezxml_child(tranTag, TAMS_PHONE_TAG)) == NULL) {
-        snprintf(handshake->error.message, sizeof(handshake->error.message) - 1,
-            "Unable to get %s tag", TAMS_PHONE_TAG);
-        return EXIT_FAILURE;
-    }
-    strncpy(handshake->tamsResponse.phone, item->txt,
-        sizeof(handshake->tamsResponse.phone));
 
     if ((item = ezxml_child(tranTag, TAMS_PRE_CONNECT_TAG)) == NULL) {
         snprintf(handshake->error.message, sizeof(handshake->error.message) - 1,
@@ -537,24 +603,27 @@ static short getTamsResponse(Handshake* handshake, ezxml_t tranTag)
     strncpy(handshake->tamsResponse.stampLabel, item->txt,
         sizeof(handshake->tamsResponse.stampLabel));
 
-    if ((item = ezxml_child(tranTag, TAMS_TERMAPPTYPE_TAG)) == NULL) {
-        snprintf(handshake->error.message, sizeof(handshake->error.message) - 1,
-            "Unable to get %s tag", TAMS_TERMAPPTYPE_TAG);
-        return EXIT_FAILURE;
-    }
-    handshake->tamsResponse.terminalAppType = strcmp(item->txt, "MERCHANT") == 0
-        ? TERMINAL_APP_TYPE_MERCHANT
-        : strcmp(item->txt, "AGENCY") == 0    ? TERMINAL_APP_TYPE_AGENT
-        : strcmp(item->txt, "CONVERTED") == 0 ? TERMINAL_APP_TYPE_CONVERTED
-                                              : TERMINAL_APP_TYPE_UNKNOWN;
+    return EXIT_SUCCESS;
+}
 
-    if ((item = ezxml_child(tranTag, TAMS_USER_ID_TAG)) == NULL) {
+/**
+ * @brief Get the Tams Response object
+ *
+ * @param handshake
+ * @param tranTag
+ * @return short
+ */
+static short getTamsResponse(Handshake_t* handshake, ezxml_t tranTag)
+{
+    ezxml_t item = NULL;
+
+    if ((item = ezxml_child(tranTag, TAMS_MESSAGE_TAG)) == NULL
+        || !isdigit(item->txt[0])) {
         snprintf(handshake->error.message, sizeof(handshake->error.message) - 1,
-            "Unable to get %s tag", TAMS_USER_ID_TAG);
+            "Unable to get %s tag (TID)", TAMS_MESSAGE_TAG);
         return EXIT_FAILURE;
     }
-    strncpy(handshake->tamsResponse.userId, item->txt,
-        sizeof(handshake->tamsResponse.userId));
+    strncpy(handshake->tid, item->txt, sizeof(handshake->tid));
 
     if (getTerminalFromTamsResponse(&handshake->tamsResponse, tranTag)
         != EXIT_SUCCESS) {
@@ -570,6 +639,10 @@ static short getTamsResponse(Handshake* handshake, ezxml_t tranTag)
         return EXIT_FAILURE;
     }
 
+    if (getTamsResponseHelper(handshake, tranTag) != EXIT_SUCCESS) {
+        return EXIT_FAILURE;
+    }
+
     return EXIT_SUCCESS;
 }
 
@@ -580,7 +653,7 @@ static short getTamsResponse(Handshake* handshake, ezxml_t tranTag)
  * @param root
  * @return short
  */
-static short parseMapTidResponseHelper(Handshake* handshake, ezxml_t root)
+static short parseMapTidResponseHelper(Handshake_t* handshake, ezxml_t root)
 {
     ezxml_t tranTag = NULL;
 
@@ -605,7 +678,7 @@ static short parseMapTidResponseHelper(Handshake* handshake, ezxml_t root)
  * @param response
  * @return short
  */
-static short parseMapTidResponse(Handshake* handshake, char* response)
+static short parseMapTidResponse(Handshake_t* handshake, char* response)
 {
     ezxml_t root = NULL;
     short ret = EXIT_FAILURE;
@@ -628,171 +701,11 @@ exit:
 }
 
 /**
- * @brief Terminal App Type to string
- * 
- * @param terminalAppType 
- * @return const char* 
- */
-const char* terminalAppTypeToString(TerminalAppType terminalAppType)
-{
-    switch (terminalAppType) {
-    case TERMINAL_APP_TYPE_AGENT:
-        return "AGENT";
-    case TERMINAL_APP_TYPE_MERCHANT:
-        return "MERCHANT";
-    case TERMINAL_APP_TYPE_CONVERTED:
-        return "CONVERTED";
-    case TERMINAL_APP_TYPE_UNKNOWN:
-        return "UNKOWN";
-    default:
-        return "";
-    }
-}
-
-/**
- * @brief Middleware server type to string
- * 
- * @param middlewareServerType 
- * @return const char* 
- */
-const char* middlewareServerTypeToString(MiddlewareServerType middlewareServerType)
-{
-    switch (middlewareServerType) {
-    case MIDDLEWARE_SERVER_TYPE_POSVAS:
-        return "POSVAS";
-    case MIDDLEWARE_SERVER_TYPE_EPMS:
-        return "EPMS";
-    case MIDDLEWARE_SERVER_TYPE_UNKNOWN:
-        return "UNKOWN";
-    default:
-        return "";
-    }
-}
-
-/**
- * @brief Log TAMS Response Terminals
- *
- * @param tamsResponse
- */
-void logTerminals(TAMSResponse* tamsResponse)
-{
-    debug("AMP:                           %s", tamsResponse->terminals.amp);
-    debug("MOREFUN:                       %s", tamsResponse->terminals.moreFun);
-    debug("NEWLAND:                       %s", tamsResponse->terminals.newLand);
-    debug("NEWPOS:                        %s", tamsResponse->terminals.newPos);
-    debug("NEXGO:                         %s", tamsResponse->terminals.nexGo);
-    debug("PAX:                           %s", tamsResponse->terminals.pax);
-    debug(
-        "PAYSHARP:                      %s", tamsResponse->terminals.paySharp);
-    debug(
-        "VERIFONE:                      %s", tamsResponse->terminals.verifone);
-}
-
-/**
- * @brief Log TAMS Response Servers
- *
- * @param tamsResponse
- */
-void logServers(TAMSResponse* tamsResponse)
-{
-    debug("Middleware server type:        %s",
-        middlewareServerTypeToString(
-            tamsResponse->servers.middlewareServerType));
-    debug("Connection Type:               %s",
-        tamsResponse->servers.connectionType == CONNECTION_TYPE_PLAIN ? "PLAIN"
-                                                                      : "SSL");
-    debug("TAMS Public IP:                %s",
-        tamsResponse->servers.tams.publicIp);
-    debug("EPMS Plain Public IP:          %s",
-        tamsResponse->servers.epmsPlain.publicIp);
-    debug("EPMS Plain Public Port:        %d",
-        tamsResponse->servers.epmsPlain.publicPort);
-    debug("EPMS Plain Private IP:         %s",
-        tamsResponse->servers.epmsPlain.privateIp);
-    debug("EPMS Plain Private Port:       %d",
-        tamsResponse->servers.epmsPlain.privatePort);
-    debug("EPMS SSL Public IP:            %s",
-        tamsResponse->servers.epmsSsl.publicIp);
-    debug("EPMS SSL Public Port:          %d",
-        tamsResponse->servers.epmsSsl.publicPort);
-    debug("EPMS SSL Private IP:           %s",
-        tamsResponse->servers.epmsSsl.privateIp);
-    debug("EPMS SSL Private Port:         %d",
-        tamsResponse->servers.epmsSsl.privatePort);
-    debug("POSVAS Plain Public IP:        %s",
-        tamsResponse->servers.posvasPlain.publicIp);
-    debug("POSVAS Plain Public Port:      %d",
-        tamsResponse->servers.posvasPlain.publicPort);
-    debug("POSVAS Plain Private IP:       %s",
-        tamsResponse->servers.posvasPlain.privateIp);
-    debug("POSVAS Plain Private Port:     %d",
-        tamsResponse->servers.posvasPlain.privatePort);
-    debug("POSVAS SSL Public IP:          %s",
-        tamsResponse->servers.posvasSsl.publicIp);
-    debug("POSVAS SSL Public Port:        %d",
-        tamsResponse->servers.posvasSsl.publicPort);
-    debug("POSVAS SSL Private IP:         %s",
-        tamsResponse->servers.posvasSsl.privateIp);
-    debug("POSVAS SSL Private Port:       %d",
-        tamsResponse->servers.posvasSsl.privatePort);
-    debug("Remote Upgrade Public IP:      %s",
-        tamsResponse->servers.remoteUpgrade.publicIp);
-    debug("Remote Upgrade Private IP:     %s",
-        tamsResponse->servers.remoteUpgrade.privateIp);
-    debug("Call Home Public IP:           %s",
-        tamsResponse->servers.callhome.publicIp);
-    debug("Call Home Public Port:         %d",
-        tamsResponse->servers.callhome.publicPort);
-    debug("Call Home POSVAS Public IP:    %s",
-        tamsResponse->servers.callhomePosvas.publicIp);
-    debug("Call Home POSVAS Public Port:  %d",
-        tamsResponse->servers.callhomePosvas.publicPort);
-    debug("Call Home Time:                %d",
-        tamsResponse->servers.callhomeTime);
-    debug("VAS URL:                       %s", tamsResponse->servers.vasUrl);
-}
-
-/**
- * @brief Log TAMS Response
- *
- * @param tamsResponse
- */
-void logTamsResponse(TAMSResponse* tamsResponse)
-{
-    debug("Account to Debit:              %s", tamsResponse->accountToDebit);
-    debug("Account Number:                %s", tamsResponse->accountNumber);
-    debug("Account Selection Type:        %d",
-        tamsResponse->accountSelectionType);
-    debug("Aggregator Name:               %s", tamsResponse->aggregatorName);
-    debug("Balance:                       %s", tamsResponse->balance);
-    debug("Commission:                    %s", tamsResponse->commision);
-    debug("Email:                         %s", tamsResponse->email);
-    debug("Merchant Address:              %s", tamsResponse->merchantAddress);
-    debug("Merchant Name:                 %s", tamsResponse->merchantName);
-    debug("Notification ID:               %s", tamsResponse->notificationId);
-    debug("Phone:                         %s", tamsResponse->phone);
-    debug("POS Support:                   %s", tamsResponse->posSupport);
-    debug("Pre Connect:                   %s", tamsResponse->preConnect);
-    debug("RRN:                           %s", tamsResponse->rrn);
-    debug("Stamp Duty:                    %s", tamsResponse->stampDuty);
-    debug(
-        "Stamp Duty Threshold:          %s", tamsResponse->stampDutyThreshold);
-    debug("Stamp Label:                   %s", tamsResponse->stampLabel);
-    debug("Terminal App Type:             (%d) %s",
-        tamsResponse->terminalAppType,
-        terminalAppTypeToString(tamsResponse->terminalAppType));
-    debug("User ID:                       %s", tamsResponse->userId);
-
-    logTerminals(tamsResponse);
-    logServers(tamsResponse);
-}
-
-/**
  * @brief Handshake Map TID
  *
  * @param handshake
  */
-void Handshake_MapTid(Handshake* handshake)
+void Handshake_MapTid(Handshake_t* handshake)
 {
     char requestBuf[0x1000] = { '\0' };
     unsigned char responseBuf[0x1000] = { '\0' };
@@ -810,8 +723,8 @@ void Handshake_MapTid(Handshake* handshake)
 
     ret = handshake->comSendReceive(responseBuf, sizeof(responseBuf) - 1,
         (unsigned char*)requestBuf, sizeof(requestBuf) - 1,
-        handshake->host.host, handshake->host.port, handshake->hostSentinel,
-        "</efttran>");
+        handshake->mapTidHost.hostUrl, handshake->mapTidHost.port,
+        handshake->hostSentinel, "</efttran>");
     if (ret < 0) {
         snprintf(handshake->error.message, sizeof(handshake->error.message) - 1,
             "Error sending or receiving request");

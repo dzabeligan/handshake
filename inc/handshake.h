@@ -22,7 +22,7 @@ extern "C" {
 typedef enum {
     HANDSHAKE_MAPTID_FALSE,
     HANDSHAKE_MAPTID_TRUE,
-} handshake_MapTid;
+} HandshakeMapTid;
 
 typedef enum {
     PLATFORM_NIBSS,
@@ -51,8 +51,28 @@ typedef enum {
     ERROR_CODE_NO_ERROR,
     ERROR_CODE_HANDSHAKE_INIT_ERROR,
     ERROR_CODE_HANDSHAKE_MAPTID_ERROR,
+    ERROR_CODE_HANDSHAKE_RUN_ERROR,
     ERROR_CODE_ERROR,
 } ErrorCode;
+
+typedef enum {
+    SIM_TYPE_PUBLIC,
+    SIM_TYPE_PRIVATE,
+} SimType;
+
+typedef enum {
+    HANDSHAKE_OPERATIONS_MASTER_KEY = 1 << 0,
+    HANDSHAKE_OPERATIONS_SESSION_KEY = 1 << 1,
+    HANDSHAKE_OPERATIONS_PIN_KEY = 1 << 2,
+    HANDSHAKE_OPERATIONS_PARAMETER = 1 << 3,
+    HANDSHAKE_OPERATIONS_CALLHOME = 1 << 4,
+    HANDSHAKE_OPERATIONS_ALL = 0xFF,
+} HandshakeOperations;
+
+typedef short (*GetKey)(void* handshake);
+typedef int (*ComSendReceive)(unsigned char* response, const size_t rSize,
+    const unsigned char* request, const size_t len, const char* ip,
+    const int port, const HostRecvSentinel recevSentinel, const char* endTag);
 
 struct appInfo {
     char name[32];
@@ -65,7 +85,7 @@ struct deviceInfo {
 };
 
 typedef struct Host {
-    char host[65];
+    char hostUrl[65];
     int port;
     ConnectionType connectionType;
     unsigned int receiveTimeout;
@@ -77,11 +97,20 @@ typedef struct Error {
 } Error;
 
 typedef struct Server {
-    char publicIp[65];
-    char privateIp[65];
-    int publicPort;
-    int privatePort;
+    char ip[65];
+    int port;
 } Server;
+
+typedef struct PrivatePublicServer {
+    Server privateServer;
+    Server publicServer;
+} PrivatePublicServer;
+
+
+typedef struct {
+    PrivatePublicServer ssl;
+    PrivatePublicServer plain;
+} MiddlewareServer;
 
 typedef struct TAMSResponse {
     char accountToDebit[16];
@@ -120,57 +149,72 @@ typedef struct TAMSResponse {
         Server tams;
         Server callhome;
         Server callhomePosvas;
-        Server epmsSsl;
-        Server epmsPlain;
-        Server posvasSsl;
-        Server posvasPlain;
-        Server remoteUpgrade;
+        PrivatePublicServer remoteUpgrade;
+        MiddlewareServer epms;
+        MiddlewareServer posvas;
         char vasUrl[64];
         int callhomeTime;
         ConnectionType connectionType;
     } servers;
 } TAMSResponse;
 
-typedef int (*ComSendReceive)(unsigned char* response, const size_t rSize,
-    const unsigned char* request, const size_t len, const char* ip,
-    const int port, const HostRecvSentinel recevSentinel, const char* endTag);
+typedef struct Key {
+    unsigned char key[33];
+    unsigned char kcv[33];
+} Key;
+
+typedef struct NetworkManagementResponse {
+    char responseCode[3];
+    Key master;
+    Key session;
+    Key pin;
+} NetworkManagementResponse;
 
 typedef struct handshake_InitData {
     Platform platform;
-    handshake_MapTid mapTid;
+    HandshakeMapTid mapTid;
     char tid[9];
     struct appInfo appInfo;
     struct deviceInfo deviceInfo;
-    Host host;
+    SimType simType;
+    Host mapTidHost;
+    Host handshakeHost;
+    Host callHomeHost;
 
     // callback
     HostRecvSentinel hostSentinel;
     ComSendReceive comSendReceive;
 } handshake_InitData;
 
-typedef struct Handshake {
+typedef struct Handshake_t {
     Platform platform;
-    handshake_MapTid mapTid;
+    HandshakeMapTid mapTid;
     char tid[9];
     struct appInfo appInfo;
     struct deviceInfo deviceInfo;
-    Host host;
+    SimType simType;
+    Host mapTidHost;
+    Host handshakeHost;
+    Host callHomeHost;
     TAMSResponse tamsResponse;
+    NetworkManagementResponse networkManagementResponse;
 
     // callback
     HostRecvSentinel hostSentinel;
     ComSendReceive comSendReceive;
+    GetKey getMasterKey;
+    GetKey getSessionKey;
+    GetKey getPinKey;
 
     Error error;
-} Handshake;
-
-void Handshake_Init(Handshake* handshake, handshake_InitData* initData);
-void Handshake_MapTid(Handshake* handshake);
-void Handshake_Run(Handshake* handshake);
+} Handshake_t;
 
 void logTamsResponse(TAMSResponse* tamsResponse);
 void logTerminals(TAMSResponse* tamsResponse);
 void logServers(TAMSResponse* tamsResponse);
+
+void Handshake(Handshake_t* handshake, handshake_InitData* initData,
+    HandshakeOperations ops);
 
 #ifdef __cplusplus
 }
