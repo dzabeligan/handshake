@@ -1,5 +1,6 @@
 #include "utils.h"
 
+#ifdef ITEX_OPENSSL
 void showSslCerts(SSL* ssl)
 {
     X509* cert;
@@ -20,7 +21,7 @@ void showSslCerts(SSL* ssl)
     }
 }
 
-SSL_CTX* middlewareContext()
+SSL_CTX* middlewareContext(void)
 {
     static SSL_CTX* serverContext = NULL;
     if (!serverContext) {
@@ -28,3 +29,4 @@ SSL_CTX* middlewareContext()
     }
     return serverContext;
 }
+#endif

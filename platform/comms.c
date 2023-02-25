@@ -15,7 +15,8 @@
 #include "comms.h"
 #include "utils.h"
 
-int sslRead(SSL* sslHandle, unsigned char* buffer, int readSize,
+#ifdef ITEX_OPENSSL
+static int sslRead(SSL* sslHandle, unsigned char* buffer, int readSize,
     const HostRecvSentinel recevSentinel, const char* endTag)
 {
     int totalReceived = 0;
@@ -155,3 +156,22 @@ clean_exit:
     close(sockfd);
     return ret;
 }
+#else
+
+int comSendReceive(unsigned char* response, const size_t rSize,
+    const unsigned char* request, const size_t len, const char* ip,
+    const int port, const HostRecvSentinel recevSentinel, const char* endTag)
+{
+    (void)response;
+    (void)rSize;
+    (void)request;
+    (void)len;
+    (void)ip;
+    (void)port;
+    (void)recevSentinel;
+    (void)endTag;
+
+    return 0;
+}
+
+#endif
