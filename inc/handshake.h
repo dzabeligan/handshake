@@ -20,6 +20,14 @@ extern "C" {
 #endif
 
 typedef enum {
+    PTAD_KEY_UNKNOWN,
+    PTAD_KEY_POSVAS,
+    PTAD_KEY_EPMS,
+    PTAD_KEY_NIBSS,
+    PTAD_KEY_TAMS,
+} PtadKey;
+
+typedef enum {
     HANDSHAKE_MAPTID_FALSE,
     HANDSHAKE_MAPTID_TRUE,
 } HandshakeMapTid;
@@ -69,7 +77,7 @@ typedef enum {
     HANDSHAKE_OPERATIONS_ALL = 0xFF,
 } HandshakeOperations;
 
-typedef short (*GetKey)(void* handshake);
+typedef short (*GetNetworkManagementData)(void* handshake);
 typedef int (*ComSendReceive)(unsigned char* response, const size_t rSize,
     const unsigned char* request, const size_t len, const char* ip,
     const int port, const HostRecvSentinel recevSentinel, const char* endTag);
@@ -82,6 +90,11 @@ struct appInfo {
 struct deviceInfo {
     char posUid[32];
     char model[32];
+};
+
+struct simInfo {
+    SimType simType;
+    char imsi[32];
 };
 
 typedef struct Host {
@@ -106,8 +119,7 @@ typedef struct PrivatePublicServer {
     Server publicServer;
 } PrivatePublicServer;
 
-
-typedef struct {
+typedef struct MiddlewareServer {
     PrivatePublicServer ssl;
     PrivatePublicServer plain;
 } MiddlewareServer;
@@ -145,16 +157,22 @@ typedef struct TAMSResponse {
     } terminals;
 
     struct {
+        ConnectionType connectionType;
+
         MiddlewareServerType middlewareServerType;
+
         Server tams;
         Server callhome;
         Server callhomePosvas;
+
+        int callhomeTime;
+
         PrivatePublicServer remoteUpgrade;
+
         MiddlewareServer epms;
         MiddlewareServer posvas;
+
         char vasUrl[64];
-        int callhomeTime;
-        ConnectionType connectionType;
     } servers;
 } TAMSResponse;
 
@@ -163,20 +181,37 @@ typedef struct Key {
     unsigned char kcv[33];
 } Key;
 
+typedef struct Parameter {
+    char callHomeTime[25];
+    char cardAcceptorID[41];
+    char countryCode[8];
+    char currencyCode[8];
+    char merchantCategoryCode[8];
+    char merchantNameAndLocation[41];
+    char serverDateAndTime[20];
+    char timeout[34];
+} Parameter;
+
 typedef struct NetworkManagementResponse {
     char responseCode[3];
     Key master;
     Key session;
     Key pin;
+    Parameter parameter;
 } NetworkManagementResponse;
 
 typedef struct handshake_InitData {
-    Platform platform;
-    HandshakeMapTid mapTid;
     char tid[9];
+
     struct appInfo appInfo;
     struct deviceInfo deviceInfo;
-    SimType simType;
+    struct simInfo simInfo;  
+
+    PtadKey ptadKey;
+    Platform platform;
+    HandshakeMapTid mapTid;
+
+    // host
     Host mapTidHost;
     Host handshakeHost;
     Host callHomeHost;
@@ -187,24 +222,32 @@ typedef struct handshake_InitData {
 } handshake_InitData;
 
 typedef struct Handshake_t {
-    Platform platform;
-    HandshakeMapTid mapTid;
     char tid[9];
+
     struct appInfo appInfo;
     struct deviceInfo deviceInfo;
-    SimType simType;
+    struct simInfo simInfo;  
+
+    PtadKey ptadKey;
+    Platform platform;
+    HandshakeMapTid mapTid;
+
+    // hosts
     Host mapTidHost;
-    Host handshakeHost;
     Host callHomeHost;
+    Host handshakeHost;
+
+    // responses
     TAMSResponse tamsResponse;
     NetworkManagementResponse networkManagementResponse;
 
     // callback
     HostRecvSentinel hostSentinel;
     ComSendReceive comSendReceive;
-    GetKey getMasterKey;
-    GetKey getSessionKey;
-    GetKey getPinKey;
+    GetNetworkManagementData getMasterKey;
+    GetNetworkManagementData getSessionKey;
+    GetNetworkManagementData getPinKey;
+    GetNetworkManagementData getParameter;
 
     Error error;
 } Handshake_t;
@@ -212,6 +255,9 @@ typedef struct Handshake_t {
 void logTamsResponse(TAMSResponse* tamsResponse);
 void logTerminals(TAMSResponse* tamsResponse);
 void logServers(TAMSResponse* tamsResponse);
+void logKey(Key* key, const char* title);
+void logParameter(Parameter* parameter);
+void logNetworkManagementResponse(NetworkManagementResponse* networkManagementResponse);
 
 void Handshake(Handshake_t* handshake, handshake_InitData* initData,
     HandshakeOperations ops);

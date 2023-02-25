@@ -12,7 +12,6 @@
 
 #include "../dbg.h"
 
-#include "../inc/handshake.h"
 #include "../inc/handshake_internals.h"
 
 /**
@@ -56,7 +55,7 @@ static void Handshake_Init(Handshake_t* handshake, handshake_InitData* initData)
     handshake->hostSentinel = initData->hostSentinel;
     handshake->platform = initData->platform;
     handshake->mapTid = initData->mapTid;
-    handshake->simType = initData->simType;
+    handshake->ptadKey = initData->ptadKey;
 
     memcpy(&handshake->mapTidHost, &initData->mapTidHost,
         sizeof(handshake->mapTidHost));
@@ -80,11 +79,14 @@ static void Handshake_Init(Handshake_t* handshake, handshake_InitData* initData)
     }
 
     memcpy(&handshake->appInfo, &initData->appInfo, sizeof(handshake->appInfo));
+    memcpy(&handshake->simInfo, &initData->simInfo, sizeof(handshake->simInfo));
     memcpy(&handshake->deviceInfo, &initData->deviceInfo,
         sizeof(handshake->deviceInfo));
 
     if (handshake->platform == PLATFORM_NIBSS) {
         bindNibss(handshake);
+    } else if (handshake->platform == PLATFORM_TAMS) {
+        bindTams(handshake);
     }
 
     handshake->error.code = ERROR_CODE_NO_ERROR;
@@ -94,7 +96,7 @@ static void Handshake_Init(Handshake_t* handshake, handshake_InitData* initData)
 static void getHandshakeHostHelper(
     Handshake_t* handshake, PrivatePublicServer* server)
 {
-    SimType simType = handshake->simType;
+    SimType simType = handshake->simInfo.simType;
 
     if (simType == SIM_TYPE_PUBLIC) {
         strncpy(handshake->handshakeHost.hostUrl, server->publicServer.ip,
@@ -180,6 +182,10 @@ static void Handshake_Run(Handshake_t* handshake, HandshakeOperations ops)
     }
     if (ops & HANDSHAKE_OPERATIONS_PIN_KEY) {
         if (handshake->getPinKey(handshake) != EXIT_SUCCESS)
+            return;
+    }
+    if (ops & HANDSHAKE_OPERATIONS_PARAMETER) {
+        if (handshake->getParameter(handshake) != EXIT_SUCCESS)
             return;
     }
 

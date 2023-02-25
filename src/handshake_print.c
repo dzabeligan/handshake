@@ -4,9 +4,9 @@
  * @brief Implement interface to print Handshake objects
  * @version 0.1
  * @date 2023-02-23
- * 
+ *
  * @copyright Copyright (c) 2023
- * 
+ *
  */
 #include "../dbg.h"
 
@@ -18,7 +18,7 @@
  * @param terminalAppType
  * @return const char*
  */
-const char* terminalAppTypeToString(TerminalAppType terminalAppType)
+static const char* terminalAppTypeToString(TerminalAppType terminalAppType)
 {
     switch (terminalAppType) {
     case TERMINAL_APP_TYPE_AGENT:
@@ -40,7 +40,7 @@ const char* terminalAppTypeToString(TerminalAppType terminalAppType)
  * @param middlewareServerType
  * @return const char*
  */
-const char* middlewareServerTypeToString(
+static const char* middlewareServerTypeToString(
     MiddlewareServerType middlewareServerType)
 {
     switch (middlewareServerType) {
@@ -170,4 +170,34 @@ void logTamsResponse(TAMSResponse* tamsResponse)
 
     logTerminals(tamsResponse);
     logServers(tamsResponse);
+}
+
+void logKey(Key* key, const char* title)
+{
+    debug("%s", title);
+    debug("Key:                           %s", key->key);
+    debug("KCV:                           %s", key->kcv);
+
+}
+
+void logParameter(Parameter* parameter)
+{
+    debug("Call Home Time:                %s", parameter->callHomeTime);
+    debug("Card Acceptor ID:              %s", parameter->cardAcceptorID);
+    debug("Country Code:                  %s", parameter->countryCode);
+    debug("Currency Code:                 %s", parameter->currencyCode);
+    debug("Merchant Category Code:        %s", parameter->merchantCategoryCode);
+    debug("Merchant Name and Location:    %s", parameter->merchantNameAndLocation);
+    debug("Server Date and Time:          %s", parameter->serverDateAndTime);
+    debug("Timeout:                       %s", parameter->timeout);
+
+}
+
+void logNetworkManagementResponse(NetworkManagementResponse* networkManagementResponse)
+{
+    debug("Response Code:                 %s", networkManagementResponse->responseCode);
+    logKey(&networkManagementResponse->master, "MASTER KEY");
+    logKey(&networkManagementResponse->session, "SESSION KEY");
+    logKey(&networkManagementResponse->pin, "PIN KEY");
+    logParameter(&networkManagementResponse->parameter);
 }

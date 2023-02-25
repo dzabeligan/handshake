@@ -13,6 +13,7 @@
 
 #include "../dbg.h"
 #include "../ezxml/ezxml.h"
+#include "../inc/handshake_utils.h"
 
 #include "../inc/handshake.h"
 
@@ -168,29 +169,6 @@ static pos_status getPosStatus(Handshake_t* handshake, ezxml_t tranTag)
 }
 
 /**
- * @brief Split string at separator
- *
- * @param firstPart
- * @param fLen
- * @param secondPart
- * @param sLen
- * @param data
- * @param separator
- */
-static void splitStr(char* firstPart, size_t fLen, char* secondPart,
-    size_t sLen, const char* data, int separator)
-{
-    const char* separatorIndex = strchr(data, separator);
-    size_t len = 0;
-
-    if (separatorIndex == NULL)
-        return;
-    len = separatorIndex - data;
-    strncpy(firstPart, data, len > fLen ? fLen : len);
-    strncpy(secondPart, &separatorIndex[1], sLen);
-}
-
-/**
  * @brief Get the Terminal From Tams Response object
  *
  * @param tamsResponse
@@ -273,32 +251,34 @@ static short getServersFromTamsResponseHelper(MiddlewareServer* server,
         return EXIT_FAILURE;
     }
     memset(portBuf, '\0', sizeof(portBuf));
-    splitStr(server->plain.privateServer.ip, sizeof(server->plain.privateServer.ip),
-        portBuf, sizeof(portBuf), item->txt, ';');
+    splitStr(server->plain.privateServer.ip,
+        sizeof(server->plain.privateServer.ip), portBuf, sizeof(portBuf),
+        item->txt, ';');
     server->plain.privateServer.port = atoi(portBuf);
 
     if ((item = ezxml_child(tranTag, publicTag)) == NULL) {
         return EXIT_FAILURE;
     }
     memset(portBuf, '\0', sizeof(portBuf));
-    splitStr(server->plain.publicServer.ip, sizeof(server->plain.publicServer.ip), portBuf,
-        sizeof(portBuf), item->txt, ';');
+    splitStr(server->plain.publicServer.ip,
+        sizeof(server->plain.publicServer.ip), portBuf, sizeof(portBuf),
+        item->txt, ';');
     server->plain.publicServer.port = atoi(portBuf);
 
     if ((item = ezxml_child(tranTag, privateSslTag)) == NULL) {
         return EXIT_FAILURE;
     }
     memset(portBuf, '\0', sizeof(portBuf));
-    splitStr(server->ssl.privateServer.ip, sizeof(server->ssl.privateServer.ip), portBuf,
-        sizeof(portBuf), item->txt, ';');
+    splitStr(server->ssl.privateServer.ip, sizeof(server->ssl.privateServer.ip),
+        portBuf, sizeof(portBuf), item->txt, ';');
     server->ssl.privateServer.port = atoi(portBuf);
 
     if ((item = ezxml_child(tranTag, publicSslTag)) == NULL) {
         return EXIT_FAILURE;
     }
     memset(portBuf, '\0', sizeof(portBuf));
-    splitStr(server->ssl.publicServer.ip, sizeof(server->ssl.publicServer.ip), portBuf,
-        sizeof(portBuf), item->txt, ';');
+    splitStr(server->ssl.publicServer.ip, sizeof(server->ssl.publicServer.ip),
+        portBuf, sizeof(portBuf), item->txt, ';');
     server->ssl.publicServer.port = atoi(portBuf);
 
     return EXIT_SUCCESS;
@@ -637,6 +617,16 @@ static short getTamsResponse(Handshake_t* handshake, ezxml_t tranTag)
         snprintf(handshake->error.message, sizeof(handshake->error.message) - 1,
             "Unable to get servers");
         return EXIT_FAILURE;
+    }
+    if (handshake->ptadKey == PTAD_KEY_UNKNOWN) {
+        handshake->ptadKey
+            = handshake->tamsResponse.servers.middlewareServerType
+                == MIDDLEWARE_SERVER_TYPE_POSVAS
+            ? PTAD_KEY_POSVAS
+            : handshake->tamsResponse.servers.middlewareServerType
+                == MIDDLEWARE_SERVER_TYPE_EPMS
+            ? PTAD_KEY_EPMS
+            : PTAD_KEY_UNKNOWN;
     }
 
     if (getTamsResponseHelper(handshake, tranTag) != EXIT_SUCCESS) {
