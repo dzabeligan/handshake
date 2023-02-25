@@ -18,6 +18,7 @@ extern "C" {
 #include "../inc/handshake.h"
 
 void bindNibss(Handshake_t* handshake);
+void bindTams(Handshake_t* handshake);
 
 void Handshake_MapTid(Handshake_t* handshake);
 
