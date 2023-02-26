@@ -78,6 +78,7 @@ typedef enum {
 } HandshakeOperations;
 
 typedef short (*GetNetworkManagementData)(void* handshake);
+typedef int (*GetCallHomeData)(char* data, const size_t len);
 typedef int (*ComSendReceive)(unsigned char* response, const size_t rSize,
     const unsigned char* request, const size_t len, const char* ip,
     const int port, const HostRecvSentinel recevSentinel, const char* endTag);
@@ -219,6 +220,7 @@ typedef struct handshake_InitData {
     // callback
     HostRecvSentinel hostSentinel;
     ComSendReceive comSendReceive;
+    GetCallHomeData getCallHomeData;
 } handshake_InitData;
 
 typedef struct Handshake_t {
@@ -248,6 +250,8 @@ typedef struct Handshake_t {
     GetNetworkManagementData getSessionKey;
     GetNetworkManagementData getPinKey;
     GetNetworkManagementData getParameter;
+    GetNetworkManagementData getCallHome;
+    GetCallHomeData getCallHomeData;
 
     Error error;
 } Handshake_t;

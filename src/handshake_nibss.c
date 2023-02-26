@@ -52,6 +52,8 @@ static const char* networkManagementTypeToProcessCode(
         return "9G";
     case NETWORK_MANAGEMENT_PARAMETER_DOWNLOAD:
         return "9C";
+    case NETWORK_MANAGEMENT_CALL_HOME:
+        return "9D";
     default:
         return NULL;
     }
@@ -80,10 +82,12 @@ static int buildDE62(char* buf, size_t bufLen, Handshake_t* handshake,
     NetworkManagementType networkManagementType)
 {
     short pos = 0;
+    short ret = EXIT_FAILURE;
+    char state[0x10000] = { '\0' };
 
-    if (networkManagementType != NETWORK_MANAGEMENT_PARAMETER_DOWNLOAD
-        && networkManagementType != NETWORK_MANAGEMENT_CALL_HOME)
-        return EXIT_FAILURE;
+    check_debug(networkManagementType == NETWORK_MANAGEMENT_PARAMETER_DOWNLOAD
+            || networkManagementType == NETWORK_MANAGEMENT_CALL_HOME,
+        "Build DE 62 for only `Parameter Download` or `Call Home`");
 
     pos += snprintf(&buf[pos], bufLen - pos, "%s%03d%s", "01",
         (int)strlen(handshake->deviceInfo.posUid),
@@ -95,13 +99,16 @@ static int buildDE62(char* buf, size_t bufLen, Handshake_t* handshake,
         (int)strlen(handshake->appInfo.version), handshake->appInfo.version);
     pos += snprintf(&buf[pos], bufLen - pos, "%s%03d%s", "10",
         (int)strlen(handshake->deviceInfo.model), handshake->deviceInfo.model);
-    pos += snprintf(&buf[pos], bufLen - pos, "%s%03d%s", "11",
-        (int)strlen("handshake->deviceInfo.model"),
-        "handshake->deviceInfo.model");
+    check(handshake->getCallHomeData(state, sizeof(state)),
+        "Error Getting State");
+    pos += snprintf(
+        &buf[pos], bufLen - pos, "%s%03d%s", "11", (int)strlen(state), state);
     snprintf(&buf[pos], bufLen - pos, "%s%03d%s", "12",
         (int)strlen(handshake->simInfo.imsi), handshake->simInfo.imsi);
 
-    return EXIT_SUCCESS;
+    ret = EXIT_SUCCESS;
+error:
+    return ret;
 }
 
 static const char* getPtadKey(PtadKey ptadKey)
@@ -172,29 +179,6 @@ static void getDecryptionKey(Handshake_t* handshake,
     }
 }
 
-static short validateKey(Handshake_t* handshake, Key* key,
-    NetworkManagementType networkManagementType)
-{
-    char decryptionKey[33] = { '\0' };
-    char clearKey[33] = { '\0' };
-
-    getDecryptionKey(
-        handshake, networkManagementType, decryptionKey, sizeof(decryptionKey));
-    getClearKey(clearKey, sizeof(clearKey), (char*)key->key, decryptionKey);
-
-    debug("Decryption key '%s'", decryptionKey);
-    debug("Clear key '%s'", clearKey);
-
-    if (!checkKeyValue(clearKey, (char*)key->kcv)) {
-        snprintf(handshake->error.message, sizeof(handshake->error.message) - 1,
-            "Error validating key (%s)",
-            networkManagementTypeToString(networkManagementType));
-        return EXIT_FAILURE;
-    }
-
-    return EXIT_SUCCESS;
-}
-
 static int buildNetworkManagementIso(unsigned char* packetBuf, size_t len,
     Handshake_t* handshake, NetworkManagementType networkManagementType)
 {
@@ -216,48 +200,56 @@ static int buildNetworkManagementIso(unsigned char* packetBuf, size_t len,
     strftime(dateBuff, sizeof(dateBuff), "%m%d", &now_t);
     strftime(timeBuff, sizeof(timeBuff), "%H%M%S", &now_t);
 
-    if (c8583Check(handshake,
-            setDatum(
-                isoMsg, MESSAGE_TYPE_INDICATOR_0, NETWORK_MANAGEMENT_MTI, 4),
-            isoMsg))
-        goto exit;
-    if (c8583Check(handshake,
-            setDatum(isoMsg, PROCESSING_CODE_3, (unsigned char*)processingCode,
-                strlen(processingCode)),
-            isoMsg))
-        goto exit;
-    if (c8583Check(handshake,
-            setDatum(isoMsg, TRANSACTION_DATE_TIME_7,
-                (unsigned char*)dateTimeBuff, strlen(dateTimeBuff)),
-            isoMsg))
-        goto exit;
-    if (c8583Check(handshake,
-            setDatum(isoMsg, SYSTEM_TRACE_AUDIT_NUMBER_11,
-                (unsigned char*)timeBuff, strlen(timeBuff)),
-            isoMsg))
-        goto exit;
-    if (c8583Check(handshake,
-            setDatum(isoMsg, LOCAL_TRANSACTION_TIME_12,
-                (unsigned char*)timeBuff, strlen(timeBuff)),
-            isoMsg))
-        goto exit;
-    if (c8583Check(handshake,
-            setDatum(isoMsg, LOCAL_TRANSACTION_DATE_13,
-                (unsigned char*)dateBuff, strlen(dateBuff)),
-            isoMsg))
-        goto exit;
-    if (c8583Check(handshake,
-            setDatum(isoMsg, CARD_ACCEPTOR_TERMINAL_IDENTIFICATION_41,
-                (unsigned char*)handshake->tid, strlen(handshake->tid)),
-            isoMsg))
-        goto exit;
+    check(c8583Check(handshake,
+              setDatum(
+                  isoMsg, MESSAGE_TYPE_INDICATOR_0, NETWORK_MANAGEMENT_MTI, 4),
+              isoMsg)
+            == EXIT_SUCCESS,
+        "Error Setting MTI");
+    check(c8583Check(handshake,
+              setDatum(isoMsg, PROCESSING_CODE_3,
+                  (unsigned char*)processingCode, strlen(processingCode)),
+              isoMsg)
+            == EXIT_SUCCESS,
+        "Error Setting DE 3");
+    check(c8583Check(handshake,
+              setDatum(isoMsg, TRANSACTION_DATE_TIME_7,
+                  (unsigned char*)dateTimeBuff, strlen(dateTimeBuff)),
+              isoMsg)
+            == EXIT_SUCCESS,
+        "Error Setting DE 7");
+    check(c8583Check(handshake,
+              setDatum(isoMsg, SYSTEM_TRACE_AUDIT_NUMBER_11,
+                  (unsigned char*)timeBuff, strlen(timeBuff)),
+              isoMsg)
+            == EXIT_SUCCESS,
+        "Error Setting DE 11");
+    check(c8583Check(handshake,
+              setDatum(isoMsg, LOCAL_TRANSACTION_TIME_12,
+                  (unsigned char*)timeBuff, strlen(timeBuff)),
+              isoMsg)
+            == EXIT_SUCCESS,
+        "Error Setting DE 12");
+    check(c8583Check(handshake,
+              setDatum(isoMsg, LOCAL_TRANSACTION_DATE_13,
+                  (unsigned char*)dateBuff, strlen(dateBuff)),
+              isoMsg)
+            == EXIT_SUCCESS,
+        "Error Setting DE 13");
+    check(c8583Check(handshake,
+              setDatum(isoMsg, CARD_ACCEPTOR_TERMINAL_IDENTIFICATION_41,
+                  (unsigned char*)handshake->tid, strlen(handshake->tid)),
+              isoMsg)
+            == EXIT_SUCCESS,
+        "Error Setting DE 41");
     if (buildDE62(de62Buf, sizeof(de62Buf), handshake, networkManagementType)
         == EXIT_SUCCESS) {
-        if (c8583Check(handshake,
-                setDatum(isoMsg, RESERVED_PRIVATE_62, (unsigned char*)de62Buf,
-                    strlen(de62Buf)),
-                isoMsg))
-            goto exit;
+        check(c8583Check(handshake,
+                  setDatum(isoMsg, RESERVED_PRIVATE_62, (unsigned char*)de62Buf,
+                      strlen(de62Buf)),
+                  isoMsg)
+                == EXIT_SUCCESS,
+            "Error Setting DE 62");
         useMac = 1;
     }
 
@@ -278,108 +270,18 @@ static int buildNetworkManagementIso(unsigned char* packetBuf, size_t len,
     } else {
         ret = packData(isoMsg, packetBuf, len);
     }
-exit:
+error:
     destroyIso8583(isoMsg);
     return ret;
-}
-
-static short parseGetKeyResponse(
-    Handshake_t* handshake, unsigned char* responseBuf, Key* key)
-{
-    short ret = EXIT_FAILURE;
-    IsoMsg isoMsg = createIso8583();
-    unsigned char de53Buff[97] = { '\0' };
-    size_t keySize = sizeof(key->key) - 1;
-
-    if (c8583Check(handshake,
-            unpackData(
-                isoMsg, &responseBuf[2], (responseBuf[0] << 8) + responseBuf[1])
-                == 0,
-            isoMsg))
-        goto exit;
-
-    logIsoMsg(isoMsg, stderr);
-
-    if (c8583Check(handshake,
-            getDatum(isoMsg, RESPONSE_CODE_39,
-                (unsigned char*)
-                    handshake->networkManagementResponse.responseCode,
-                3)
-                == 0,
-            isoMsg))
-        goto exit;
-
-    if (!isApprovedResponse(handshake->networkManagementResponse.responseCode))
-        goto exit;
-
-    if (c8583Check(handshake,
-            getDatum(isoMsg, SECURITY_RELATED_CONTROL_INFORMATION_53, de53Buff,
-                sizeof(de53Buff))
-                == 0,
-            isoMsg))
-        goto exit;
-
-    rightTrim((char*)de53Buff, '0');
-    memcpy(key->key, de53Buff, keySize);
-    memcpy(key->kcv, &de53Buff[keySize], strlen((char*)de53Buff) - keySize);
-
-    debug("Key: %s", key->key);
-    debug("KCV: %s", key->kcv);
-
-    ret = EXIT_SUCCESS;
-exit:
-    destroyIso8583(isoMsg);
-    return ret;
-}
-
-static short getKey(Handshake_t* handshake, Key* key,
-    NetworkManagementType networkManagementType)
-{
-    unsigned char packetBuf[0x1000] = { '\0' };
-    unsigned char responseBuf[0x1000] = { '\0' };
-    unsigned char requestBuf[0x1000] = { '\0' };
-    int len = 0;
-
-    memset(packetBuf, '\0', sizeof(packetBuf));
-    len = buildNetworkManagementIso(
-        packetBuf, sizeof(packetBuf), handshake, networkManagementType);
-    if (len <= 0) {
-        return EXIT_FAILURE;
-    }
-    debug("Packet: '%s (%d)'", packetBuf, len);
-
-    snprintf((char*)requestBuf, sizeof(requestBuf) - 1, "%c%c%s", len >> 8, len,
-        packetBuf);
-
-    len = handshake->comSendReceive(responseBuf, sizeof(responseBuf) - 1,
-        requestBuf, sizeof(requestBuf) - 1, handshake->handshakeHost.hostUrl,
-        handshake->handshakeHost.port, NULL, NULL);
-    if (len < 0) {
-        snprintf(handshake->error.message, sizeof(handshake->error.message) - 1,
-            "Error sending or receiving request");
-        return EXIT_FAILURE;
-    }
-    debug("Response: '%s (%d) (%d)'", &responseBuf[2], len,
-        (responseBuf[0] << 8) + responseBuf[1]);
-
-    if (parseGetKeyResponse(handshake, responseBuf, key) != EXIT_SUCCESS) {
-        return EXIT_FAILURE;
-    }
-
-    if (validateKey(handshake, key, networkManagementType) != EXIT_SUCCESS) {
-        return EXIT_FAILURE;
-    }
-
-    return EXIT_SUCCESS;
 }
 
 static int getLength(char* line, int nCopy)
 {
-    int len = strlen(line);
     int ret = 0;
-    char value[23] = { '\0' };
+    int len = strlen(line);
 
     if (len && (nCopy < len)) {
+        char value[23] = { '\0' };
         char buffer[0x1000] = { '\0' };
 
         strncpy(value, line, nCopy);
@@ -408,7 +310,7 @@ static int getValue(char* line, char* value, int nCopy)
     return 0;
 }
 
-static short expandMerchantParameters(
+static short getMerchantParameters(
     Handshake_t* handshake, const char* de62, const int size)
 {
     int tagLen, valueWidth;
@@ -472,69 +374,34 @@ static short expandMerchantParameters(
     return 0;
 }
 
-static short parseGetNetworkDataResponse(
-    Handshake_t* handshake, unsigned char* responseBuf)
-{
-    short ret = EXIT_FAILURE;
-    IsoMsg isoMsg = createIso8583();
-    unsigned char de62Buff[0x1000] = { '\0' };
-
-    if (c8583Check(handshake,
-            unpackData(
-                isoMsg, &responseBuf[2], (responseBuf[0] << 8) + responseBuf[1])
-                == 0,
-            isoMsg))
-        goto exit;
-
-    logIsoMsg(isoMsg, stderr);
-
-    if (c8583Check(handshake,
-            getDatum(isoMsg, RESPONSE_CODE_39,
-                (unsigned char*)
-                    handshake->networkManagementResponse.responseCode,
-                3)
-                == 0,
-            isoMsg))
-        goto exit;
-
-    if (!isApprovedResponse(handshake->networkManagementResponse.responseCode))
-        goto exit;
-
-    if (c8583Check(handshake,
-            getDatum(isoMsg, RESERVED_PRIVATE_62, de62Buff, sizeof(de62Buff))
-                == 0,
-            isoMsg))
-        goto exit;
-    expandMerchantParameters(handshake, (char*)de62Buff, sizeof(de62Buff));
-    ret = EXIT_SUCCESS;
-exit:
-    destroyIso8583(isoMsg);
-    return ret;
-}
-
-static short getNetworkData(
+static short getNetworkDataHelper(unsigned char* responseBuf, size_t bufLen,
     Handshake_t* handshake, NetworkManagementType networkManagementType)
 {
     unsigned char packetBuf[0x1000] = { '\0' };
-    unsigned char responseBuf[0x1000] = { '\0' };
     unsigned char requestBuf[0x1000] = { '\0' };
     int len = 0;
+    short ret = EXIT_FAILURE;
 
     memset(packetBuf, '\0', sizeof(packetBuf));
     len = buildNetworkManagementIso(
         packetBuf, sizeof(packetBuf), handshake, networkManagementType);
-    if (len <= 0) {
-        return EXIT_FAILURE;
-    }
+    check(len > 0, "Error Building Packet");
     debug("Packet: '%s (%d)'", packetBuf, len);
 
     snprintf((char*)requestBuf, sizeof(requestBuf) - 1, "%c%c%s", len >> 8, len,
         packetBuf);
 
-    len = handshake->comSendReceive(responseBuf, sizeof(responseBuf) - 1,
-        requestBuf, sizeof(requestBuf) - 1, handshake->handshakeHost.hostUrl,
-        handshake->handshakeHost.port, NULL, NULL);
+    if (networkManagementType == NETWORK_MANAGEMENT_CALL_HOME) {
+        len = handshake->comSendReceive(responseBuf, bufLen, requestBuf,
+            sizeof(requestBuf) - 1, handshake->callHomeHost.hostUrl,
+            handshake->callHomeHost.port, NULL, NULL);
+    } else {
+        len = handshake->comSendReceive(responseBuf, bufLen, requestBuf,
+            sizeof(requestBuf) - 1, handshake->handshakeHost.hostUrl,
+            handshake->handshakeHost.port, NULL, NULL);
+    }
     if (len < 0) {
+        log_err("Error sending or receiving request");
         snprintf(handshake->error.message, sizeof(handshake->error.message) - 1,
             "Error sending or receiving request");
         return EXIT_FAILURE;
@@ -542,18 +409,176 @@ static short getNetworkData(
     debug("Response: '%s (%d) (%d)'", &responseBuf[2], len,
         (responseBuf[0] << 8) + responseBuf[1]);
 
-    if (parseGetNetworkDataResponse(handshake, responseBuf) != EXIT_SUCCESS) {
+    ret = EXIT_SUCCESS;
+error:
+    return ret;
+}
+
+static short parseGetNetworkDataResponseHelper(
+    Handshake_t* handshake, IsoMsg isoMsg, unsigned char* responseBuf)
+{
+    short ret = EXIT_FAILURE;
+
+    check(c8583Check(handshake,
+              unpackData(isoMsg, &responseBuf[2],
+                  (responseBuf[0] << 8) + responseBuf[1])
+                  == 0,
+              isoMsg)
+            == EXIT_SUCCESS,
+        "Error Unpacking Data");
+
+    logIsoMsg(isoMsg, stderr);
+
+    check(c8583Check(handshake,
+              getDatum(isoMsg, RESPONSE_CODE_39,
+                  (unsigned char*)
+                      handshake->networkManagementResponse.responseCode,
+                  3)
+                  == 0,
+              isoMsg)
+            == EXIT_SUCCESS,
+        "Error Getting DE 39 - Response Code");
+
+    check(isApprovedResponse(handshake->networkManagementResponse.responseCode),
+        "Not Arroved Response");
+
+    ret = EXIT_SUCCESS;
+error:
+    return ret;
+}
+
+static short parseGetKeyResponse(
+    Handshake_t* handshake, unsigned char* responseBuf, Key* key)
+{
+    short ret = EXIT_FAILURE;
+    IsoMsg isoMsg = createIso8583();
+    unsigned char de53Buff[97] = { '\0' };
+    size_t keySize = sizeof(key->key) - 1;
+
+    check(parseGetNetworkDataResponseHelper(handshake, isoMsg, responseBuf)
+            == EXIT_SUCCESS,
+        "Parsing Error");
+
+    check(c8583Check(handshake,
+              getDatum(isoMsg, SECURITY_RELATED_CONTROL_INFORMATION_53,
+                  de53Buff, sizeof(de53Buff))
+                  == 0,
+              isoMsg)
+            == EXIT_SUCCESS,
+        "Error Getting DE 53");
+
+    rightTrim((char*)de53Buff, '0');
+    memcpy(key->key, de53Buff, keySize);
+    memcpy(key->kcv, &de53Buff[keySize], strlen((char*)de53Buff) - keySize);
+
+    ret = EXIT_SUCCESS;
+error:
+    destroyIso8583(isoMsg);
+    return ret;
+}
+
+static short parseGetNetworkDataResponse(Handshake_t* handshake,
+    unsigned char* responseBuf, NetworkManagementType networkManagementType)
+{
+    short ret = EXIT_FAILURE;
+    IsoMsg isoMsg = createIso8583();
+    unsigned char de62Buff[0x1000] = { '\0' };
+
+    check(parseGetNetworkDataResponseHelper(handshake, isoMsg, responseBuf)
+            == EXIT_SUCCESS,
+        "Parsing Error");
+
+    if (networkManagementType == NETWORK_MANAGEMENT_PARAMETER_DOWNLOAD) {
+        check(c8583Check(handshake,
+                  getDatum(
+                      isoMsg, RESERVED_PRIVATE_62, de62Buff, sizeof(de62Buff))
+                      == 0,
+                  isoMsg)
+                == EXIT_SUCCESS,
+            "Error Getting DE 62");
+
+        getMerchantParameters(handshake, (char*)de62Buff, sizeof(de62Buff));
+    }
+
+    ret = EXIT_SUCCESS;
+error:
+    destroyIso8583(isoMsg);
+    return ret;
+}
+
+static short validateKey(Handshake_t* handshake, Key* key,
+    NetworkManagementType networkManagementType)
+{
+    char decryptionKey[33] = { '\0' };
+    char clearKey[33] = { '\0' };
+
+    getDecryptionKey(
+        handshake, networkManagementType, decryptionKey, sizeof(decryptionKey));
+    getClearKey(clearKey, sizeof(clearKey), (char*)key->key, decryptionKey);
+
+    debug("Decryption key '%s'", decryptionKey);
+    debug("Clear key '%s'", clearKey);
+
+    if (!checkKeyValue(clearKey, (char*)key->kcv)) {
+        log_err("Error validating key (%s)",
+            networkManagementTypeToString(networkManagementType));
+        snprintf(handshake->error.message, sizeof(handshake->error.message) - 1,
+            "Error validating key (%s)",
+            networkManagementTypeToString(networkManagementType));
         return EXIT_FAILURE;
     }
 
     return EXIT_SUCCESS;
 }
 
+static short getKey(Handshake_t* handshake, Key* key,
+    NetworkManagementType networkManagementType)
+{
+    unsigned char responseBuf[0x1000] = { '\0' };
+    short ret = EXIT_FAILURE;
+
+    check(getNetworkDataHelper(responseBuf, sizeof(responseBuf) - 1, handshake,
+              networkManagementType)
+            == EXIT_SUCCESS,
+        "Error Getting Network Data");
+
+    check(parseGetKeyResponse(handshake, responseBuf, key) == EXIT_SUCCESS,
+        "Parsing Error");
+
+    check(validateKey(handshake, key, networkManagementType) == EXIT_SUCCESS,
+        "Validation Error");
+
+    ret = EXIT_SUCCESS;
+error:
+    return ret;
+}
+
+static short getNetworkData(
+    Handshake_t* handshake, NetworkManagementType networkManagementType)
+{
+    unsigned char responseBuf[0x1000] = { '\0' };
+    short ret = EXIT_FAILURE;
+
+    check(getNetworkDataHelper(responseBuf, sizeof(responseBuf) - 1, handshake,
+              networkManagementType)
+            == EXIT_SUCCESS,
+        "Error Getting Network Data");
+
+    check(parseGetNetworkDataResponse(
+              handshake, responseBuf, networkManagementType)
+            == EXIT_SUCCESS,
+        "Parsing Error");
+
+    ret = EXIT_SUCCESS;
+error:
+    return ret;
+}
+
 static short getMasterKey(void* vHandshake)
 {
     Handshake_t* handshake = (Handshake_t*)vHandshake;
 
-    debug("\n\nMASTER");
+    debug("MASTER");
     return getKey(handshake, &handshake->networkManagementResponse.master,
         NETWORK_MANAGEMENT_MASTER_KEY);
 }
@@ -562,7 +587,7 @@ static short getSessionKey(void* vHandshake)
 {
     Handshake_t* handshake = (Handshake_t*)vHandshake;
 
-    debug("\n\nSESSION");
+    debug("SESSION");
     return getKey(handshake, &handshake->networkManagementResponse.session,
         NETWORK_MANAGEMENT_SESSION_KEY);
 }
@@ -571,16 +596,25 @@ static short getPinKey(void* vHandshake)
 {
     Handshake_t* handshake = (Handshake_t*)vHandshake;
 
-    debug("\n\nPIN");
+    debug("PIN");
     return getKey(handshake, &handshake->networkManagementResponse.pin,
         NETWORK_MANAGEMENT_PIN_KEY);
 }
 
 static short getParameter(void* vHandshake)
 {
-    (void)vHandshake;
-    debug("\n\nPARAMETER");
-    return EXIT_SUCCESS;
+    Handshake_t* handshake = (Handshake_t*)vHandshake;
+
+    debug("PARAMETER");
+    return getNetworkData(handshake, NETWORK_MANAGEMENT_PARAMETER_DOWNLOAD);
+}
+
+static short getCallHome(void* vHandshake)
+{
+    Handshake_t* handshake = (Handshake_t*)vHandshake;
+
+    debug("CALL HOME");
+    return getNetworkData(handshake, NETWORK_MANAGEMENT_CALL_HOME);
 }
 
 void bindNibss(Handshake_t* handshake)
@@ -589,4 +623,5 @@ void bindNibss(Handshake_t* handshake)
     handshake->getSessionKey = getSessionKey;
     handshake->getPinKey = getPinKey;
     handshake->getParameter = getParameter;
+    handshake->getCallHome = getCallHome;
 }

@@ -63,8 +63,11 @@ void splitStr(char* firstPart, size_t fLen, char* secondPart, size_t sLen,
     const char* separatorIndex = strchr(data, separator);
     size_t len = 0;
 
-    if (separatorIndex == NULL)
+    if (separatorIndex == NULL) {
+        log_err("Error Splitting String");
         return;
+    }
+
     len = separatorIndex - data;
     strncpy(firstPart, data, len > fLen ? fLen : len);
     strncpy(secondPart, &separatorIndex[1], sLen);
@@ -94,8 +97,10 @@ short bcdToAsc(unsigned char* asc, const int ascLen, const unsigned char* bcd,
     int i = 0;
     short pos = 0;
 
-    if (bcdLen <= 0 || bcdLen * 2 > ascLen)
+    if (bcdLen <= 0 || bcdLen * 2 > ascLen) {
+        log_err("Error Converting to ASCII");
         return -1;
+    }
 
     for (i = 0; i < bcdLen; i++) {
         pos += sprintf((char*)&asc[pos], "%02X", bcd[i]);

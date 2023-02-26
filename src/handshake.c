@@ -53,6 +53,7 @@ static void Handshake_Init(Handshake_t* handshake, handshake_InitData* initData)
     }
     handshake->comSendReceive = initData->comSendReceive;
     handshake->hostSentinel = initData->hostSentinel;
+    handshake->getCallHomeData = initData->getCallHomeData;
     handshake->platform = initData->platform;
     handshake->mapTid = initData->mapTid;
     handshake->ptadKey = initData->ptadKey;
@@ -173,37 +174,43 @@ static void Handshake_Run(Handshake_t* handshake, HandshakeOperations ops)
     handshake->error.code = ERROR_CODE_HANDSHAKE_RUN_ERROR;
 
     if (ops & HANDSHAKE_OPERATIONS_MASTER_KEY) {
-        if (handshake->getMasterKey(handshake) != EXIT_SUCCESS)
-            return;
+        check(handshake->getMasterKey(handshake) == EXIT_SUCCESS,
+            "Error Getting Master Key");
     }
     if (ops & HANDSHAKE_OPERATIONS_SESSION_KEY) {
-        if (handshake->getSessionKey(handshake) != EXIT_SUCCESS)
-            return;
+        check(handshake->getSessionKey(handshake) == EXIT_SUCCESS,
+            "Error Getting Session Key");
     }
     if (ops & HANDSHAKE_OPERATIONS_PIN_KEY) {
-        if (handshake->getPinKey(handshake) != EXIT_SUCCESS)
-            return;
+        check(handshake->getPinKey(handshake) == EXIT_SUCCESS,
+            "Error Getting PIN Key");
     }
     if (ops & HANDSHAKE_OPERATIONS_PARAMETER) {
-        if (handshake->getParameter(handshake) != EXIT_SUCCESS)
-            return;
+        check(handshake->getParameter(handshake) == EXIT_SUCCESS,
+            "Error Getting Parameter");
+    }
+    if (ops & HANDSHAKE_OPERATIONS_CALLHOME) {
+        check(handshake->getCallHome(handshake) == EXIT_SUCCESS,
+            "Error Getting Call Home");
     }
 
     handshake->error.code = ERROR_CODE_NO_ERROR;
     memset(handshake->error.message, '\0', sizeof(handshake->error.message));
+
+error:
+    return;
 }
 
 void Handshake(Handshake_t* handshake, handshake_InitData* initData,
     HandshakeOperations ops)
 {
     Handshake_Init(handshake, initData);
-    if (handshake->error.code != ERROR_CODE_NO_ERROR)
-        return;
+    check(handshake->error.code == ERROR_CODE_NO_ERROR, "Handshake Init Error");
 
     if (handshake->mapTid == HANDSHAKE_MAPTID_TRUE) {
         Handshake_MapTid(handshake);
-        if (handshake->error.code != ERROR_CODE_NO_ERROR)
-            return;
+        check(handshake->error.code == ERROR_CODE_NO_ERROR,
+            "Handshake Map TID Error");
     }
 
     Handshake_GetHosts(handshake);
@@ -213,4 +220,6 @@ void Handshake(Handshake_t* handshake, handshake_InitData* initData,
         handshake->callHomeHost.port);
 
     Handshake_Run(handshake, ops);
+error:
+    return;
 }
