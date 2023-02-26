@@ -17,7 +17,7 @@
 
 #ifdef ITEX_OPENSSL
 static int sslRead(SSL* sslHandle, unsigned char* buffer, int readSize,
-    const HostRecvSentinel recevSentinel, const char* endTag)
+    const ComSentinel recevSentinel, const char* endTag)
 {
     int totalReceived = 0;
     fd_set fds;
@@ -90,7 +90,7 @@ static int sslRead(SSL* sslHandle, unsigned char* buffer, int readSize,
 
 int comSendReceive(unsigned char* response, const size_t rSize,
     const unsigned char* request, const size_t len, const char* ip,
-    const int port, const HostRecvSentinel recevSentinel, const char* endTag)
+    const int port, const ComSentinel recevSentinel, const char* endTag)
 {
     int sockfd = 0, n = 0;
     struct timeval timeout;
@@ -160,7 +160,7 @@ clean_exit:
 
 int comSendReceive(unsigned char* response, const size_t rSize,
     const unsigned char* request, const size_t len, const char* ip,
-    const int port, const HostRecvSentinel recevSentinel, const char* endTag)
+    const int port, const ComSentinel recevSentinel, const char* endTag)
 {
     (void)response;
     (void)rSize;

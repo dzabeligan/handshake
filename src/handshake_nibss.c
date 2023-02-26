@@ -310,7 +310,7 @@ static int getValue(char* line, char* value, int nCopy)
     return 0;
 }
 
-static short getMerchantParameters(
+static short parseDE62(
     Handshake_t* handshake, const char* de62, const int size)
 {
     int tagLen, valueWidth;
@@ -497,7 +497,7 @@ static short parseGetNetworkDataResponse(Handshake_t* handshake,
                 == EXIT_SUCCESS,
             "Error Getting DE 62");
 
-        getMerchantParameters(handshake, (char*)de62Buff, sizeof(de62Buff));
+        parseDE62(handshake, (char*)de62Buff, sizeof(de62Buff));
     }
 
     ret = EXIT_SUCCESS;

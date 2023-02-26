@@ -655,7 +655,7 @@ void Handshake_MapTid(Handshake_t* handshake)
     ret = handshake->comSendReceive(responseBuf, sizeof(responseBuf) - 1,
         (unsigned char*)requestBuf, sizeof(requestBuf) - 1,
         handshake->mapTidHost.hostUrl, handshake->mapTidHost.port,
-        handshake->hostSentinel, "</efttran>");
+        handshake->comSentinel, "</efttran>");
     check(ret > 0, "Error sending or receiving request");
     debug("Response: '%s (%d)'", responseBuf, ret);
 

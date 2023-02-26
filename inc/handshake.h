@@ -19,6 +19,10 @@
 extern "C" {
 #endif
 
+/**
+ * @brief PTAD Key type
+ *
+ */
 typedef enum {
     PTAD_KEY_UNKNOWN,
     PTAD_KEY_POSVAS,
@@ -27,27 +31,47 @@ typedef enum {
     PTAD_KEY_TAMS,
 } PtadKey;
 
+/**
+ * @brief Map Tid bool
+ *
+ */
 typedef enum {
     HANDSHAKE_MAPTID_FALSE,
     HANDSHAKE_MAPTID_TRUE,
 } HandshakeMapTid;
 
+/**
+ * @brief Handshake platform
+ *
+ */
 typedef enum {
     PLATFORM_NIBSS,
     PLATFORM_TAMS,
 } Platform;
 
+/**
+ * @brief Server connection type
+ *
+ */
 typedef enum {
     CONNECTION_TYPE_PLAIN,
     CONNECTION_TYPE_SSL,
 } ConnectionType;
 
+/**
+ * @brief Middleware server type
+ *
+ */
 typedef enum {
     MIDDLEWARE_SERVER_TYPE_POSVAS,
     MIDDLEWARE_SERVER_TYPE_EPMS,
     MIDDLEWARE_SERVER_TYPE_UNKNOWN,
 } MiddlewareServerType;
 
+/**
+ * @brief Terminal application type
+ *
+ */
 typedef enum {
     TERMINAL_APP_TYPE_MERCHANT,
     TERMINAL_APP_TYPE_AGENT,
@@ -55,6 +79,10 @@ typedef enum {
     TERMINAL_APP_TYPE_UNKNOWN,
 } TerminalAppType;
 
+/**
+ * @brief Error Code
+ *
+ */
 typedef enum {
     ERROR_CODE_NO_ERROR,
     ERROR_CODE_HANDSHAKE_INIT_ERROR,
@@ -63,12 +91,21 @@ typedef enum {
     ERROR_CODE_ERROR,
 } ErrorCode;
 
+/**
+ * @brief Sim type
+ *
+ */
 typedef enum {
     SIM_TYPE_PUBLIC,
     SIM_TYPE_PRIVATE,
 } SimType;
 
+/**
+ * @brief Handshake operations
+ *
+ */
 typedef enum {
+    HANDSHAKE_OPERATIONS_NONE,
     HANDSHAKE_OPERATIONS_MASTER_KEY = 1 << 0,
     HANDSHAKE_OPERATIONS_SESSION_KEY = 1 << 1,
     HANDSHAKE_OPERATIONS_PIN_KEY = 1 << 2,
@@ -77,26 +114,60 @@ typedef enum {
     HANDSHAKE_OPERATIONS_ALL = 0xFF,
 } HandshakeOperations;
 
-typedef int (*GetCallHomeData)(char* data, const size_t len);
+/**
+ * @brief Function pointer to send and receive data
+ *
+ */
 typedef int (*ComSendReceive)(unsigned char* response, const size_t rSize,
     const unsigned char* request, const size_t len, const char* ip,
-    const int port, const HostRecvSentinel recevSentinel, const char* endTag);
+    const int port, const ComSentinel recevSentinel, const char* endTag);
+/**
+ * @brief Function pointer to get call home data
+ *
+ */
+typedef int (*GetCallHomeData)(char* data, const size_t len);
 
+/**
+ * @brief application information
+ * @name: application name
+ * @version: application version
+ *
+ */
 struct appInfo {
     char name[32];
     char version[32];
 };
 
+/**
+ * @brief device information
+ * @posUid: device serial number
+ * @model: device model
+ *
+ */
 struct deviceInfo {
     char posUid[32];
     char model[32];
 };
 
+/**
+ * @brief SIM information
+ * @simType: Enum of sim type
+ * @imsi: IMSI of SIM
+ *
+ */
 struct simInfo {
     SimType simType;
     char imsi[32];
 };
 
+/**
+ * @brief Host struct
+ * @hostUrl: URL of host
+ * @port: PORT
+ * @connectionType: connection type enum
+ * @receiveTimeout: connection timeout
+ *
+ */
 typedef struct Host {
     char hostUrl[65];
     int port;
@@ -104,26 +175,75 @@ typedef struct Host {
     unsigned int receiveTimeout;
 } Host;
 
+/**
+ * @brief error
+ * @code: error code
+ * @message: error message
+ *
+ */
 typedef struct Error {
     ErrorCode code;
     char message[0x200];
 } Error;
 
+/**
+ * @brief Server
+ * @ip: server ip
+ * @port: server port
+ *
+ */
 typedef struct Server {
     char ip[65];
     int port;
 } Server;
 
+/**
+ * @brief Private and public address of a server
+ * @privateServer: private address
+ * @publicServer: public address
+ *
+ */
 typedef struct PrivatePublicServer {
     Server privateServer;
     Server publicServer;
 } PrivatePublicServer;
 
+/**
+ * @brief Middleware server
+ * @ssl: ssl server
+ * @plain: plain server
+ *
+ */
 typedef struct MiddlewareServer {
     PrivatePublicServer ssl;
     PrivatePublicServer plain;
 } MiddlewareServer;
 
+/**
+ * @brief TAMS Response from Map TID
+ * @accountToDebit: account to debit
+ * @accountNumber: account number assigned to device
+ * @accountSelectionType: Should allow account selection
+ * @aggregatorName: aggregator name
+ * @balance: balance
+ * @commision: commision
+ * @email: email
+ * @merchantAddress: merchant address
+ * @merchantName: merchant name
+ * @notificationId: notification ID
+ * @phone: phone number
+ * @posSupport: POS support
+ * @preConnect: pre connect
+ * @rrn: RRN
+ * @stampDuty: stamp duty
+ * @stampDutyThreshold: stamp duty threshold
+ * @stampLabel: stamp label
+ * @terminalAppType: terminal app type
+ * @userId: user ID
+ * @terminals: struct terminals
+ * @servers: Servers
+ *
+ */
 typedef struct TAMSResponse {
     char accountToDebit[16];
     char accountNumber[16];
@@ -145,6 +265,18 @@ typedef struct TAMSResponse {
     TerminalAppType terminalAppType;
     char userId[64];
 
+    /**
+     * @brief Terminals
+     * @amp: amp
+     * @moreFun: morefun
+     * @newLand: newland
+     * @newPos: newpos
+     * @nexGo: nexgo
+     * @pax: pax
+     * @paySharp: paysharp
+     * @verifone: verifone
+     *
+     */
     struct {
         char amp[5];
         char moreFun[5];
@@ -156,6 +288,20 @@ typedef struct TAMSResponse {
         char verifone[5];
     } terminals;
 
+    /**
+     * @brief Servers
+     * @connectionType: connection type
+     * @middlewareServerType: middleware server type
+     * @tams: TAMS
+     * @callhome: Call Home EPMS
+     * @callhomePosvas: Call Home POSVAS
+     * @callhomeTime: receive timeout for call home
+     * @remoteUpgrade: remote upgrade
+     * @epms: EPMS
+     * @posvas: POSVAS
+     * @vasurl: vas url
+     *
+     */
     struct {
         ConnectionType connectionType;
 
@@ -176,11 +322,29 @@ typedef struct TAMSResponse {
     } servers;
 } TAMSResponse;
 
+/**
+ * @brief Key
+ * @key: key
+ * @kcv: KCV
+ *
+ */
 typedef struct Key {
     unsigned char key[33];
     unsigned char kcv[33];
 } Key;
 
+/**
+ * @brief Parameters
+ * @callHomeTime: call home time
+ * @cardAcceptorID: card acceptor ID
+ * @currencyCode: currency code
+ * @countryCode: country code
+ * @merchantCategoryCode: merchant category code
+ * @merchantNameAndLocation: merchant name and location
+ * @serverDateAndTime: server date and time
+ * @timeout: timeout
+ *
+ */
 typedef struct Parameters {
     char callHomeTime[25];
     char cardAcceptorID[41];
@@ -192,6 +356,15 @@ typedef struct Parameters {
     char timeout[34];
 } Parameters;
 
+/**
+ * @brief Network management response
+ * @responseCode: response code
+ * @master: master key
+ * @session: session key
+ * @pin: pin key
+ * @parameters: parameters
+ *
+ */
 typedef struct NetworkManagementResponse {
     char responseCode[3];
     Key master;
@@ -200,40 +373,38 @@ typedef struct NetworkManagementResponse {
     Parameters parameters;
 } NetworkManagementResponse;
 
-typedef struct handshake_InitData {
-    char tid[9];
-
-    // info
-    struct appInfo appInfo;
-    struct deviceInfo deviceInfo;
-    struct simInfo simInfo;  
-
-    // enums
-    HandshakeMapTid mapTid;
-    Platform platform;
-    PtadKey ptadKey;
-
-    // host
-    Host callHomeHost;
-    Host handshakeHost;
-    Host mapTidHost;
-
-    // callback
-    ComSendReceive comSendReceive;
-    GetCallHomeData getCallHomeData;
-    HostRecvSentinel hostSentinel;
-} handshake_InitData;
-
+/**
+ * @brief Handshake
+ * @tid: Terminal ID
+ * @appInfo: Application information
+ * @deviceInfo: Device information
+ * @simInfo: SIM Information
+ * @mapTid: should map tid
+ * @operations: operations to perform
+ * @platform: platform
+ * @ptadKey: ptad key type
+ * @callHomeHost: call home host
+ * @handshakeHost: handshake host
+ * @mapTidHost: map tid host
+ * @networkManagementResponse: network management response
+ * @tamsResponse: TAMS response
+ * @comSendReceive: send and receive function pointer
+ * @getCallHomeData: get call home data function pointer
+ * @comSentinel: com sentinel function pointer
+ * @error: error
+ *
+ */
 typedef struct Handshake_t {
     char tid[9];
 
     // info
     struct appInfo appInfo;
     struct deviceInfo deviceInfo;
-    struct simInfo simInfo;  
+    struct simInfo simInfo;
 
     // enums
     HandshakeMapTid mapTid;
+    HandshakeOperations operations;
     Platform platform;
     PtadKey ptadKey;
 
@@ -249,7 +420,7 @@ typedef struct Handshake_t {
     // callback
     ComSendReceive comSendReceive;
     GetCallHomeData getCallHomeData;
-    HostRecvSentinel hostSentinel;
+    ComSentinel comSentinel;
 
     Error error;
 } Handshake_t;
@@ -259,10 +430,10 @@ void logTerminals(TAMSResponse* tamsResponse);
 void logServers(TAMSResponse* tamsResponse);
 void logKey(Key* key, const char* title);
 void logParameter(Parameters* parameters);
-void logNetworkManagementResponse(NetworkManagementResponse* networkManagementResponse);
+void logNetworkManagementResponse(
+    NetworkManagementResponse* networkManagementResponse);
 
-void Handshake(Handshake_t* handshake, handshake_InitData* initData,
-    HandshakeOperations ops);
+void Handshake(Handshake_t* handshake);
 
 #ifdef __cplusplus
 }

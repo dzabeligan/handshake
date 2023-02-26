@@ -16,12 +16,6 @@
 
 #include "../inc/handshake_utils.h"
 
-/**
- * @brief
- *
- * @param c
- * @return unsigned char
- */
 static unsigned char atoh(const char c)
 {
     if (c >= '0' && c <= '9')

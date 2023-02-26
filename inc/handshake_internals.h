@@ -17,8 +17,21 @@ extern "C" {
 
 #include "../inc/handshake.h"
 
+/**
+ * @brief Function pointer for Network Management operations
+ *
+ */
 typedef short (*GetNetworkManagementData)(Handshake_t* handshake);
 
+/**
+ * @brief Data structure for internal objects
+ * @getMasterKey: function pointer to get master key
+ * @getSessionKey: function pointer to get session key
+ * @getPinKey: function pointer to get pin key
+ * @getParameters: function pointer to get parameters
+ * @doCallHome: function pointer to do call home
+ *
+ */
 typedef struct Handshake_Internals {
     GetNetworkManagementData getMasterKey;
     GetNetworkManagementData getSessionKey;
