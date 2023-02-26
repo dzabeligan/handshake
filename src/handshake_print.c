@@ -180,16 +180,16 @@ void logKey(Key* key, const char* title)
 
 }
 
-void logParameter(Parameter* parameter)
+void logParameter(Parameters* parameters)
 {
-    debug("Call Home Time:                %s", parameter->callHomeTime);
-    debug("Card Acceptor ID:              %s", parameter->cardAcceptorID);
-    debug("Country Code:                  %s", parameter->countryCode);
-    debug("Currency Code:                 %s", parameter->currencyCode);
-    debug("Merchant Category Code:        %s", parameter->merchantCategoryCode);
-    debug("Merchant Name and Location:    %s", parameter->merchantNameAndLocation);
-    debug("Server Date and Time:          %s", parameter->serverDateAndTime);
-    debug("Timeout:                       %s", parameter->timeout);
+    debug("Call Home Time:                %s", parameters->callHomeTime);
+    debug("Card Acceptor ID:              %s", parameters->cardAcceptorID);
+    debug("Country Code:                  %s", parameters->countryCode);
+    debug("Currency Code:                 %s", parameters->currencyCode);
+    debug("Merchant Category Code:        %s", parameters->merchantCategoryCode);
+    debug("Merchant Name and Location:    %s", parameters->merchantNameAndLocation);
+    debug("Server Date and Time:          %s", parameters->serverDateAndTime);
+    debug("Timeout:                       %s", parameters->timeout);
 
 }
 
@@ -199,5 +199,5 @@ void logNetworkManagementResponse(NetworkManagementResponse* networkManagementRe
     logKey(&networkManagementResponse->master, "MASTER KEY");
     logKey(&networkManagementResponse->session, "SESSION KEY");
     logKey(&networkManagementResponse->pin, "PIN KEY");
-    logParameter(&networkManagementResponse->parameter);
+    logParameter(&networkManagementResponse->parameters);
 }

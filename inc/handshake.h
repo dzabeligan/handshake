@@ -77,7 +77,6 @@ typedef enum {
     HANDSHAKE_OPERATIONS_ALL = 0xFF,
 } HandshakeOperations;
 
-typedef short (*GetNetworkManagementData)(void* handshake);
 typedef int (*GetCallHomeData)(char* data, const size_t len);
 typedef int (*ComSendReceive)(unsigned char* response, const size_t rSize,
     const unsigned char* request, const size_t len, const char* ip,
@@ -182,7 +181,7 @@ typedef struct Key {
     unsigned char kcv[33];
 } Key;
 
-typedef struct Parameter {
+typedef struct Parameters {
     char callHomeTime[25];
     char cardAcceptorID[41];
     char countryCode[8];
@@ -191,67 +190,66 @@ typedef struct Parameter {
     char merchantNameAndLocation[41];
     char serverDateAndTime[20];
     char timeout[34];
-} Parameter;
+} Parameters;
 
 typedef struct NetworkManagementResponse {
     char responseCode[3];
     Key master;
     Key session;
     Key pin;
-    Parameter parameter;
+    Parameters parameters;
 } NetworkManagementResponse;
 
 typedef struct handshake_InitData {
     char tid[9];
 
+    // info
     struct appInfo appInfo;
     struct deviceInfo deviceInfo;
     struct simInfo simInfo;  
 
-    PtadKey ptadKey;
-    Platform platform;
+    // enums
     HandshakeMapTid mapTid;
+    Platform platform;
+    PtadKey ptadKey;
 
     // host
-    Host mapTidHost;
-    Host handshakeHost;
     Host callHomeHost;
+    Host handshakeHost;
+    Host mapTidHost;
 
     // callback
-    HostRecvSentinel hostSentinel;
     ComSendReceive comSendReceive;
     GetCallHomeData getCallHomeData;
+    HostRecvSentinel hostSentinel;
 } handshake_InitData;
 
 typedef struct Handshake_t {
     char tid[9];
 
+    // info
     struct appInfo appInfo;
     struct deviceInfo deviceInfo;
     struct simInfo simInfo;  
 
-    PtadKey ptadKey;
-    Platform platform;
+    // enums
     HandshakeMapTid mapTid;
+    Platform platform;
+    PtadKey ptadKey;
 
     // hosts
-    Host mapTidHost;
     Host callHomeHost;
     Host handshakeHost;
+    Host mapTidHost;
 
     // responses
-    TAMSResponse tamsResponse;
     NetworkManagementResponse networkManagementResponse;
+    TAMSResponse tamsResponse;
 
     // callback
-    HostRecvSentinel hostSentinel;
     ComSendReceive comSendReceive;
-    GetNetworkManagementData getMasterKey;
-    GetNetworkManagementData getSessionKey;
-    GetNetworkManagementData getPinKey;
-    GetNetworkManagementData getParameter;
-    GetNetworkManagementData getCallHome;
     GetCallHomeData getCallHomeData;
+    HostRecvSentinel hostSentinel;
 
     Error error;
 } Handshake_t;
@@ -260,7 +258,7 @@ void logTamsResponse(TAMSResponse* tamsResponse);
 void logTerminals(TAMSResponse* tamsResponse);
 void logServers(TAMSResponse* tamsResponse);
 void logKey(Key* key, const char* title);
-void logParameter(Parameter* parameter);
+void logParameter(Parameters* parameters);
 void logNetworkManagementResponse(NetworkManagementResponse* networkManagementResponse);
 
 void Handshake(Handshake_t* handshake, handshake_InitData* initData,

@@ -87,7 +87,7 @@ static int buildDE62(char* buf, size_t bufLen, Handshake_t* handshake,
 
     check_debug(networkManagementType == NETWORK_MANAGEMENT_PARAMETER_DOWNLOAD
             || networkManagementType == NETWORK_MANAGEMENT_CALL_HOME,
-        "Build DE 62 for only `Parameter Download` or `Call Home`");
+        "Build DE 62 for only `Parameters Download` or `Call Home`");
 
     pos += snprintf(&buf[pos], bufLen - pos, "%s%03d%s", "01",
         (int)strlen(handshake->deviceInfo.posUid),
@@ -332,37 +332,37 @@ static short getMerchantParameters(
 
         if (strcmp(nextTag, "02") == 0) {
             result = getValue(current,
-                handshake->networkManagementResponse.parameter
+                handshake->networkManagementResponse.parameters
                     .serverDateAndTime,
                 getLength(current, valueWidth));
         } else if (strcmp(nextTag, "03") == 0) {
             result = getValue(current,
-                handshake->networkManagementResponse.parameter.cardAcceptorID,
+                handshake->networkManagementResponse.parameters.cardAcceptorID,
                 getLength(current, valueWidth));
         } else if (strcmp(nextTag, "04") == 0) {
             result = getValue(current,
-                handshake->networkManagementResponse.parameter.timeout,
+                handshake->networkManagementResponse.parameters.timeout,
                 getLength(current, valueWidth));
         } else if (strcmp(nextTag, "05") == 0) {
             result = getValue(current,
-                handshake->networkManagementResponse.parameter.currencyCode,
+                handshake->networkManagementResponse.parameters.currencyCode,
                 getLength(current, valueWidth));
         } else if (strcmp(nextTag, "06") == 0) {
             result = getValue(current,
-                handshake->networkManagementResponse.parameter.countryCode,
+                handshake->networkManagementResponse.parameters.countryCode,
                 getLength(current, valueWidth));
         } else if (strcmp(nextTag, "07") == 0) {
             result = getValue(current,
-                handshake->networkManagementResponse.parameter.callHomeTime,
+                handshake->networkManagementResponse.parameters.callHomeTime,
                 getLength(current, valueWidth));
         } else if (strcmp(nextTag, "08") == 0) {
             result = getValue(current,
-                handshake->networkManagementResponse.parameter
+                handshake->networkManagementResponse.parameters
                     .merchantCategoryCode,
                 getLength(current, valueWidth));
         } else if (strcmp(nextTag, "52") == 0) {
             result = getValue(current,
-                handshake->networkManagementResponse.parameter
+                handshake->networkManagementResponse.parameters
                     .merchantNameAndLocation,
                 getLength(current, valueWidth));
         }
@@ -574,54 +574,44 @@ error:
     return ret;
 }
 
-static short getMasterKey(void* vHandshake)
+static short getMasterKey(Handshake_t* handshake)
 {
-    Handshake_t* handshake = (Handshake_t*)vHandshake;
-
     debug("MASTER");
     return getKey(handshake, &handshake->networkManagementResponse.master,
         NETWORK_MANAGEMENT_MASTER_KEY);
 }
 
-static short getSessionKey(void* vHandshake)
+static short getSessionKey(Handshake_t* handshake)
 {
-    Handshake_t* handshake = (Handshake_t*)vHandshake;
-
     debug("SESSION");
     return getKey(handshake, &handshake->networkManagementResponse.session,
         NETWORK_MANAGEMENT_SESSION_KEY);
 }
 
-static short getPinKey(void* vHandshake)
+static short getPinKey(Handshake_t* handshake)
 {
-    Handshake_t* handshake = (Handshake_t*)vHandshake;
-
     debug("PIN");
     return getKey(handshake, &handshake->networkManagementResponse.pin,
         NETWORK_MANAGEMENT_PIN_KEY);
 }
 
-static short getParameter(void* vHandshake)
+static short getParameter(Handshake_t* handshake)
 {
-    Handshake_t* handshake = (Handshake_t*)vHandshake;
-
     debug("PARAMETER");
     return getNetworkData(handshake, NETWORK_MANAGEMENT_PARAMETER_DOWNLOAD);
 }
 
-static short getCallHome(void* vHandshake)
+static short doCallHome(Handshake_t* handshake)
 {
-    Handshake_t* handshake = (Handshake_t*)vHandshake;
-
     debug("CALL HOME");
     return getNetworkData(handshake, NETWORK_MANAGEMENT_CALL_HOME);
 }
 
-void bindNibss(Handshake_t* handshake)
+void bindNibss(Handshake_Internals* handshake_internals)
 {
-    handshake->getMasterKey = getMasterKey;
-    handshake->getSessionKey = getSessionKey;
-    handshake->getPinKey = getPinKey;
-    handshake->getParameter = getParameter;
-    handshake->getCallHome = getCallHome;
+    handshake_internals->getMasterKey = getMasterKey;
+    handshake_internals->getSessionKey = getSessionKey;
+    handshake_internals->getPinKey = getPinKey;
+    handshake_internals->getParameters = getParameter;
+    handshake_internals->doCallHome = doCallHome;
 }

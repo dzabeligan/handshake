@@ -12,38 +12,38 @@
 
 #include "../inc/handshake_internals.h"
 
-static short getMasterKey(void* vHandshake)
+static short getMasterKey(Handshake_t* handshake)
 {
-    (void)vHandshake;
+    (void)handshake;
     debug("\n\nMASTER");
     return 0;
 }
 
-static short getSessionKey(void* vHandshake)
+static short getSessionKey(Handshake_t* handshake)
 {
-    (void)vHandshake;
+    (void)handshake;
     debug("\n\nSESSION");
     return 0;
 }
 
-static short getPinKey(void* vHandshake)
+static short getPinKey(Handshake_t* handshake)
 {
-    (void)vHandshake;
+    (void)handshake;
     debug("\n\nPIN");
     return 0;
 }
 
-static short getParameter(void *vHandshake)
+static short getParameter(Handshake_t *handshake)
 {
-    (void)vHandshake;
+    (void)handshake;
     debug("\n\nPARAMETER");
     return EXIT_SUCCESS;
 }
 
-void bindTams(Handshake_t* handshake)
+void bindTams(Handshake_Internals* handshake_internals)
 {
-    handshake->getMasterKey = getMasterKey;
-    handshake->getSessionKey = getSessionKey;
-    handshake->getPinKey = getPinKey;
-    handshake->getParameter = getParameter;
+    handshake_internals->getMasterKey = getMasterKey;
+    handshake_internals->getSessionKey = getSessionKey;
+    handshake_internals->getPinKey = getPinKey;
+    handshake_internals->getParameters = getParameter;
 }

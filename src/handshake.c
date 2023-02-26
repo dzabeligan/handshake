@@ -27,6 +27,64 @@ static short checkMapTidData(handshake_InitData* initData)
         && initData->mapTidHost.hostUrl[0] && initData->mapTidHost.port != 0;
 }
 
+static short validateInitData(
+    Handshake_t* handshake, handshake_InitData* initData)
+{
+    if (!initData->comSendReceive
+        || (!((initData->mapTidHost.hostUrl[0]
+                  && initData->mapTid == HANDSHAKE_MAPTID_TRUE)
+            || initData->handshakeHost.hostUrl[0]))) {
+        log_err("`comSendReceive` or `hosts` not set");
+        snprintf(handshake->error.message, sizeof(handshake->error.message) - 1,
+            "`comSendReceive` or `hosts` not set");
+        return EXIT_FAILURE;
+    }
+    if (initData->mapTid == HANDSHAKE_MAPTID_FALSE && !(initData->tid[0])) {
+        log_err("TID can't be empty when `mapTid` is false");
+        snprintf(handshake->error.message, sizeof(handshake->error.message) - 1,
+            "TID can't be empty when `mapTid` is false");
+        return EXIT_FAILURE;
+    }
+    if (initData->mapTid == HANDSHAKE_MAPTID_TRUE
+        && !checkMapTidData(initData)) {
+        log_err("Map TID `data` or `host` not set");
+        snprintf(handshake->error.message, sizeof(handshake->error.message) - 1,
+            "Map TID `data` or `mapTidHost` not set");
+        return EXIT_FAILURE;
+    }
+
+    return EXIT_SUCCESS;
+}
+
+static void copyInitData(Handshake_t* handshake, handshake_InitData* initData)
+{
+    // callbacks
+    handshake->comSendReceive = initData->comSendReceive;
+    handshake->getCallHomeData = initData->getCallHomeData;
+    handshake->hostSentinel = initData->hostSentinel;
+
+    // enums
+    handshake->mapTid = initData->mapTid;
+    handshake->platform = initData->platform;
+    handshake->ptadKey = initData->ptadKey;
+
+    // hosts
+    memcpy(&handshake->callHomeHost, &initData->callHomeHost,
+        sizeof(handshake->callHomeHost));
+    memcpy(&handshake->handshakeHost, &initData->handshakeHost,
+        sizeof(handshake->handshakeHost));
+    memcpy(&handshake->mapTidHost, &initData->mapTidHost,
+        sizeof(handshake->mapTidHost));
+
+    strncpy(handshake->tid, initData->tid, sizeof(handshake->tid));
+
+    // info
+    memcpy(&handshake->appInfo, &initData->appInfo, sizeof(handshake->appInfo));
+    memcpy(&handshake->deviceInfo, &initData->deviceInfo,
+        sizeof(handshake->deviceInfo));
+    memcpy(&handshake->simInfo, &initData->simInfo, sizeof(handshake->simInfo));
+}
+
 /**
  * @brief Ensures all data needed for handshake is set.
  * Should be called before `Handshake_Run`
@@ -38,60 +96,28 @@ static short checkMapTidData(handshake_InitData* initData)
  * @param handshake
  * @param initData
  */
-static void Handshake_Init(Handshake_t* handshake, handshake_InitData* initData)
+static void Handshake_Init(Handshake_t* handshake,
+    Handshake_Internals* handshakeInternals, handshake_InitData* initData)
 {
     memset(handshake, '\0', sizeof(Handshake_t));
 
     handshake->error.code = ERROR_CODE_HANDSHAKE_INIT_ERROR;
 
-    if (!initData->comSendReceive
-        || (!(initData->mapTidHost.hostUrl[0]
-            || initData->handshakeHost.hostUrl[0]))) {
-        snprintf(handshake->error.message, sizeof(handshake->error.message) - 1,
-            "`comSendReceive` or `host` not set");
-        return;
-    }
-    handshake->comSendReceive = initData->comSendReceive;
-    handshake->hostSentinel = initData->hostSentinel;
-    handshake->getCallHomeData = initData->getCallHomeData;
-    handshake->platform = initData->platform;
-    handshake->mapTid = initData->mapTid;
-    handshake->ptadKey = initData->ptadKey;
+    check(validateInitData(handshake, initData) == EXIT_SUCCESS,
+        "Error Validating `initData`");
 
-    memcpy(&handshake->mapTidHost, &initData->mapTidHost,
-        sizeof(handshake->mapTidHost));
-    memcpy(&handshake->handshakeHost, &initData->handshakeHost,
-        sizeof(handshake->handshakeHost));
-    memcpy(&handshake->callHomeHost, &initData->callHomeHost,
-        sizeof(handshake->callHomeHost));
-
-    if (handshake->mapTid == HANDSHAKE_MAPTID_FALSE && !(initData->tid[0])) {
-        snprintf(handshake->error.message, sizeof(handshake->error.message) - 1,
-            "TID can't be empty when `mapTid` is false");
-        return;
-    }
-
-    strncpy(handshake->tid, initData->tid, sizeof(handshake->tid));
-    if (handshake->mapTid == HANDSHAKE_MAPTID_TRUE
-        && !checkMapTidData(initData)) {
-        snprintf(handshake->error.message, sizeof(handshake->error.message) - 1,
-            "Map TID `data` or `host` not set");
-        return;
-    }
-
-    memcpy(&handshake->appInfo, &initData->appInfo, sizeof(handshake->appInfo));
-    memcpy(&handshake->simInfo, &initData->simInfo, sizeof(handshake->simInfo));
-    memcpy(&handshake->deviceInfo, &initData->deviceInfo,
-        sizeof(handshake->deviceInfo));
+    copyInitData(handshake, initData);
 
     if (handshake->platform == PLATFORM_NIBSS) {
-        bindNibss(handshake);
+        bindNibss(handshakeInternals);
     } else if (handshake->platform == PLATFORM_TAMS) {
-        bindTams(handshake);
+        bindTams(handshakeInternals);
     }
 
     handshake->error.code = ERROR_CODE_NO_ERROR;
     memset(handshake->error.message, '\0', sizeof(handshake->error.message));
+error:
+    return;
 }
 
 static void getHandshakeHostHelper(
@@ -169,28 +195,29 @@ static void Handshake_GetHosts(Handshake_t* handshake)
     }
 }
 
-static void Handshake_Run(Handshake_t* handshake, HandshakeOperations ops)
+static void Handshake_Run(Handshake_t* handshake,
+    Handshake_Internals* handshakeInternals, HandshakeOperations ops)
 {
     handshake->error.code = ERROR_CODE_HANDSHAKE_RUN_ERROR;
 
     if (ops & HANDSHAKE_OPERATIONS_MASTER_KEY) {
-        check(handshake->getMasterKey(handshake) == EXIT_SUCCESS,
+        check(handshakeInternals->getMasterKey(handshake) == EXIT_SUCCESS,
             "Error Getting Master Key");
     }
     if (ops & HANDSHAKE_OPERATIONS_SESSION_KEY) {
-        check(handshake->getSessionKey(handshake) == EXIT_SUCCESS,
+        check(handshakeInternals->getSessionKey(handshake) == EXIT_SUCCESS,
             "Error Getting Session Key");
     }
     if (ops & HANDSHAKE_OPERATIONS_PIN_KEY) {
-        check(handshake->getPinKey(handshake) == EXIT_SUCCESS,
+        check(handshakeInternals->getPinKey(handshake) == EXIT_SUCCESS,
             "Error Getting PIN Key");
     }
     if (ops & HANDSHAKE_OPERATIONS_PARAMETER) {
-        check(handshake->getParameter(handshake) == EXIT_SUCCESS,
-            "Error Getting Parameter");
+        check(handshakeInternals->getParameters(handshake) == EXIT_SUCCESS,
+            "Error Getting Parameters");
     }
     if (ops & HANDSHAKE_OPERATIONS_CALLHOME) {
-        check(handshake->getCallHome(handshake) == EXIT_SUCCESS,
+        check(handshakeInternals->doCallHome(handshake) == EXIT_SUCCESS,
             "Error Getting Call Home");
     }
 
@@ -204,7 +231,9 @@ error:
 void Handshake(Handshake_t* handshake, handshake_InitData* initData,
     HandshakeOperations ops)
 {
-    Handshake_Init(handshake, initData);
+    Handshake_Internals handshakeInternals;
+
+    Handshake_Init(handshake, &handshakeInternals, initData);
     check(handshake->error.code == ERROR_CODE_NO_ERROR, "Handshake Init Error");
 
     if (handshake->mapTid == HANDSHAKE_MAPTID_TRUE) {
@@ -219,7 +248,7 @@ void Handshake(Handshake_t* handshake, handshake_InitData* initData,
     debug("Callhome host: %s:%d", handshake->callHomeHost.hostUrl,
         handshake->callHomeHost.port);
 
-    Handshake_Run(handshake, ops);
+    Handshake_Run(handshake, &handshakeInternals, ops);
 error:
     return;
 }

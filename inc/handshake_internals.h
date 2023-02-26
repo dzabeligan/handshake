@@ -17,8 +17,18 @@ extern "C" {
 
 #include "../inc/handshake.h"
 
-void bindNibss(Handshake_t* handshake);
-void bindTams(Handshake_t* handshake);
+typedef short (*GetNetworkManagementData)(Handshake_t* handshake);
+
+typedef struct Handshake_Internals {
+    GetNetworkManagementData getMasterKey;
+    GetNetworkManagementData getSessionKey;
+    GetNetworkManagementData getPinKey;
+    GetNetworkManagementData getParameters;
+    GetNetworkManagementData doCallHome;
+} Handshake_Internals;
+
+void bindNibss(Handshake_Internals* handshakeInternals);
+void bindTams(Handshake_Internals* handshakeInternals);
 
 void Handshake_MapTid(Handshake_t* handshake);
 
