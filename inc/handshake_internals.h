@@ -45,7 +45,7 @@ typedef struct Handshake_Internals {
 void bindNibss(Handshake_Internals* handshakeInternals);
 void bindTams(Handshake_Internals* handshakeInternals);
 
-void Handshake_MapTid(Handshake_t* handshake);
+void Handshake_MapDevice(Handshake_t* handshake);
 
 #ifdef __cplusplus
 }

@@ -205,7 +205,7 @@ void Handshake(Handshake_t* handshake)
     check(handshake->error.code == ERROR_CODE_NO_ERROR, "Handshake Init Error");
 
     if (handshake->mapTid == HANDSHAKE_MAPTID_TRUE) {
-        Handshake_MapTid(handshake);
+        Handshake_MapDevice(handshake);
         check(handshake->error.code == ERROR_CODE_NO_ERROR,
             "Handshake Map TID Error");
     }

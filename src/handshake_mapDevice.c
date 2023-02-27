@@ -601,7 +601,7 @@ error:
  * @param root
  * @return short
  */
-static short parseMapTidResponseHelper(Handshake_t* handshake, ezxml_t root)
+static short parseMapDeviceResponseHelper(Handshake_t* handshake, ezxml_t root)
 {
     ezxml_t tranTag = NULL;
     short ret = EXIT_FAILURE;
@@ -626,7 +626,7 @@ error:
  * @param response
  * @return short
  */
-static short parseMapTidResponse(Handshake_t* handshake, char* response)
+static short parseMapDeviceResponse(Handshake_t* handshake, char* response)
 {
     ezxml_t root = NULL;
     short ret = EXIT_FAILURE;
@@ -637,7 +637,7 @@ static short parseMapTidResponse(Handshake_t* handshake, char* response)
               sizeof(handshake->error.message) - 1, root)
             == 0,
         "TAMS Error");
-    check(parseMapTidResponseHelper(handshake, root) == EXIT_SUCCESS,
+    check(parseMapDeviceResponseHelper(handshake, root) == EXIT_SUCCESS,
         "Parse Error");
 
     ret = EXIT_SUCCESS;
@@ -651,11 +651,11 @@ error:
 }
 
 /**
- * @brief Handshake Map TID
+ * @brief Handshake Map Device
  *
  * @param handshake
  */
-void Handshake_MapTid(Handshake_t* handshake)
+void Handshake_MapDevice(Handshake_t* handshake)
 {
     char requestBuf[0x1000] = { '\0' };
     unsigned char responseBuf[0x1000] = { '\0' };
@@ -674,7 +674,7 @@ void Handshake_MapTid(Handshake_t* handshake)
     check(ret > 0, "Error sending or receiving request");
     debug("Response: '%s (%d)'", responseBuf, ret);
 
-    check(parseMapTidResponse(handshake, (char*)responseBuf) == EXIT_SUCCESS,
+    check(parseMapDeviceResponse(handshake, (char*)responseBuf) == EXIT_SUCCESS,
         "Parse Error");
     debug("TID after mapping: %s", handshake->tid);
 
@@ -684,6 +684,6 @@ void Handshake_MapTid(Handshake_t* handshake)
 error:
     if (ret >= 0 && !handshake->error.message[0]) {
         snprintf(handshake->error.message, sizeof(handshake->error.message) - 1,
-            "Handshake Map TID Error");
+            "Handshake Map Device Error");
     }
 }
