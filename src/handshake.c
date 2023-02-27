@@ -26,7 +26,8 @@ static short validateHandshakeData(Handshake_t* handshake)
     if (!handshake->comSendReceive
         || (!((handshake->mapTidHost.hostUrl[0]
                   && handshake->mapTid == HANDSHAKE_MAPTID_TRUE)
-            || handshake->handshakeHost.hostUrl[0]))) {
+            || (handshake->handshakeHost.hostUrl[0]
+                && handshake->handshakeHost.port)))) {
         log_err("`comSendReceive` or `hosts` not set");
         snprintf(handshake->error.message, sizeof(handshake->error.message) - 1,
             "`comSendReceive` or `hosts` not set");
