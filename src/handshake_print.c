@@ -172,6 +172,12 @@ void logTamsResponse(TAMSResponse* tamsResponse)
     logServers(tamsResponse);
 }
 
+/**
+ * @brief Log Key
+ * 
+ * @param key 
+ * @param title 
+ */
 void logKey(Key* key, const char* title)
 {
     debug("%s", title);
@@ -180,6 +186,11 @@ void logKey(Key* key, const char* title)
 
 }
 
+/**
+ * @brief Log Parameters
+ * 
+ * @param parameters 
+ */
 void logParameter(Parameters* parameters)
 {
     debug("Call Home Time:                %s", parameters->callHomeTime);
@@ -193,6 +204,11 @@ void logParameter(Parameters* parameters)
 
 }
 
+/**
+ * @brief Log Network Management Response
+ * 
+ * @param networkManagementResponse 
+ */
 void logNetworkManagementResponse(NetworkManagementResponse* networkManagementResponse)
 {
     debug("Response Code:                 %s", networkManagementResponse->responseCode);

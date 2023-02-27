@@ -102,8 +102,8 @@ static ssize_t buildTamsHomeRequest(
 /**
  * @brief Get the Pos Status object
  *
- * @param handshake
- * @param tranTag
+ * @param handshake handshake object
+ * @param tranTag ezxml object
  * @return pos_status
  */
 static pos_status getPosStatus(Handshake_t* handshake, ezxml_t tranTag)
@@ -130,8 +130,8 @@ error:
 /**
  * @brief Get the Terminal From Tams Response object
  *
- * @param tamsResponse
- * @param tranTag
+ * @param tamsResponse tamsResponse object
+ * @param tranTag ezxml object
  * @return short
  */
 static short getTerminalFromTamsResponse(
@@ -188,10 +188,10 @@ error:
 /**
  * @brief Get the Servers From Tams Response object Helper
  *
- * @param server
- * @param tranTag
- * @param privateTag
- * @param publicTag
+ * @param server MiddlewareServer
+ * @param tranTag ezxml_t
+ * @param privateTag private tag
+ * @param publicTag public tag
  * @return short
  */
 static short getServersFromTamsResponseHelper(MiddlewareServer* server,
@@ -237,6 +237,13 @@ error:
     return ret;
 }
 
+/**
+ * @brief Get the Middleware Servers object
+ * 
+ * @param tamsResponse 
+ * @param tranTag 
+ * @return short 
+ */
 static short getMiddlewareServers(TAMSResponse* tamsResponse, ezxml_t tranTag)
 {
     short ret = EXIT_FAILURE;
@@ -258,6 +265,13 @@ error:
     return ret;
 }
 
+/**
+ * @brief Get the Remote Upgrade Server object
+ * 
+ * @param tamsResponse 
+ * @param tranTag 
+ * @return short 
+ */
 static short getRemoteUpgradeServer(TAMSResponse* tamsResponse, ezxml_t tranTag)
 {
     ezxml_t item = NULL;
@@ -278,6 +292,13 @@ error:
     return ret;
 }
 
+/**
+ * @brief Get the Call Home Servers object
+ * 
+ * @param tamsResponse 
+ * @param tranTag 
+ * @return short 
+ */
 static short getCallHomeServers(TAMSResponse* tamsResponse, ezxml_t tranTag)
 {
     ezxml_t item = NULL;
@@ -360,6 +381,13 @@ error:
     return ret;
 }
 
+/**
+ * @brief Get the Account Info From Tams Response object
+ * 
+ * @param handshake 
+ * @param tranTag 
+ * @return short 
+ */
 static short getAccountInfoFromTamsResponse(
     Handshake_t* handshake, ezxml_t tranTag)
 {
@@ -389,6 +417,13 @@ error:
     return ret;
 }
 
+/**
+ * @brief Get the Customer Info From Tams Response object
+ * 
+ * @param handshake 
+ * @param tranTag 
+ * @return short 
+ */
 static short getCustomerInfoFromTamsResponse(
     Handshake_t* handshake, ezxml_t tranTag)
 {
@@ -439,6 +474,13 @@ error:
     return ret;
 }
 
+/**
+ * @brief Get the Tams Response Helper object
+ * 
+ * @param handshake 
+ * @param tranTag 
+ * @return short 
+ */
 static short getTamsResponseHelper(Handshake_t* handshake, ezxml_t tranTag)
 {
     ezxml_t item = NULL;
