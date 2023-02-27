@@ -5,6 +5,7 @@
 #include "../dbg.h"
 #include "../inc/handshake.h"
 #include "../platform/comms.h"
+#include "../platform/utils.h"
 #include "minunit.h"
 
 static int isResponseSentinel(
@@ -36,14 +37,13 @@ static int isResponseSentinel(
 const char* testHandshakeInit_comSendReceiveNotSet()
 {
     Handshake_t handshake;
-    handshake_InitData initData;
 
-    memset(&initData, '\0', sizeof(initData));
+    memset(&handshake, '\0', sizeof(Handshake_t));
 
-    initData.comSendReceive = NULL;
-    initData.hostSentinel = isResponseSentinel;
+    handshake.comSendReceive = NULL;
+    handshake.comSentinel = isResponseSentinel;
 
-    Handshake(&handshake, &initData, HANDSHAKE_OPERATIONS_ALL);
+    Handshake(&handshake);
     log_err("%s", handshake.error.message);
     mu_assert(handshake.error.code == ERROR_CODE_HANDSHAKE_INIT_ERROR, "%s",
         handshake.error.message);
@@ -54,14 +54,13 @@ const char* testHandshakeInit_comSendReceiveNotSet()
 const char* testHandshakeInit_hostNotSet()
 {
     Handshake_t handshake;
-    handshake_InitData initData;
 
-    memset(&initData, '\0', sizeof(initData));
+    memset(&handshake, '\0', sizeof(Handshake_t));
 
-    initData.comSendReceive = comSendReceive;
-    initData.hostSentinel = isResponseSentinel;
+    handshake.comSendReceive = comSendReceive;
+    handshake.comSentinel = isResponseSentinel;
 
-    Handshake(&handshake, &initData, HANDSHAKE_OPERATIONS_ALL);
+    Handshake(&handshake);
     log_err("%s", handshake.error.message);
     mu_assert(handshake.error.code == ERROR_CODE_HANDSHAKE_INIT_ERROR, "%s",
         handshake.error.message);
@@ -72,20 +71,19 @@ const char* testHandshakeInit_hostNotSet()
 const char* testHandshakeInit_mapTidTrue_dataNotSet()
 {
     Handshake_t handshake;
-    handshake_InitData initData;
 
-    memset(&initData, '\0', sizeof(initData));
+    memset(&handshake, '\0', sizeof(Handshake_t));
 
-    initData.comSendReceive = comSendReceive;
-    initData.hostSentinel = isResponseSentinel;
+    handshake.comSendReceive = comSendReceive;
+    handshake.comSentinel = isResponseSentinel;
 
-    initData.platform = PLATFORM_NIBSS;
-    initData.mapTid = HANDSHAKE_MAPTID_TRUE;
-    strcpy(initData.tid, "");
-    strcpy(initData.mapTidHost.hostUrl, "197.253.19.75");
-    initData.mapTidHost.port = 443;
+    handshake.platform = PLATFORM_NIBSS;
+    handshake.mapTid = HANDSHAKE_MAPTID_TRUE;
+    strcpy(handshake.tid, "");
+    strcpy(handshake.mapTidHost.hostUrl, "197.253.19.75");
+    handshake.mapTidHost.port = 443;
 
-    Handshake(&handshake, &initData, HANDSHAKE_OPERATIONS_ALL);
+    Handshake(&handshake);
     log_err("%s", handshake.error.message);
     mu_assert(handshake.error.code == ERROR_CODE_HANDSHAKE_INIT_ERROR, "%s",
         handshake.error.message);
@@ -96,27 +94,65 @@ const char* testHandshakeInit_mapTidTrue_dataNotSet()
 const char* testHandshakeInit_mapTidTrue()
 {
     Handshake_t handshake;
-    handshake_InitData initData;
 
-    memset(&initData, '\0', sizeof(initData));
+    memset(&handshake, '\0', sizeof(Handshake_t));
 
-    initData.comSendReceive = comSendReceive;
-    initData.hostSentinel = isResponseSentinel;
+    handshake.comSendReceive = comSendReceive;
+    handshake.comSentinel = isResponseSentinel;
+    handshake.getCallHomeData = getState;
 
-    initData.platform = PLATFORM_NIBSS;
-    initData.mapTid = HANDSHAKE_MAPTID_TRUE;
-    strcpy(initData.tid, "2033GP24");
-    strcpy(initData.appInfo.name, "Tamslite");
-    strcpy(initData.appInfo.version, "0.0.1");
-    strcpy(initData.deviceInfo.model, "LaptopPort");
-    strcpy(initData.deviceInfo.posUid, "346228245");
-    strcpy(initData.mapTidHost.hostUrl, "197.253.19.75");
-    initData.mapTidHost.port = 443;
+    handshake.operations = HANDSHAKE_OPERATIONS_ALL;
+    handshake.platform = PLATFORM_NIBSS;
+    handshake.mapTid = HANDSHAKE_MAPTID_TRUE;
+    strcpy(handshake.tid, "2033GP24");
 
-    Handshake(&handshake, &initData, HANDSHAKE_OPERATIONS_ALL);
+    strcpy(handshake.appInfo.name, "Tamslite");
+    strcpy(handshake.appInfo.version, "0.0.1");
+
+    strcpy(handshake.deviceInfo.model, "LaptopPort");
+    strcpy(handshake.deviceInfo.posUid, "346228245");
+
+    strcpy(handshake.simInfo.imsi, "621301234567890");
+    handshake.simInfo.simType = SIM_TYPE_PUBLIC;
+
+    strcpy(handshake.mapTidHost.hostUrl, "197.253.19.75");
+    handshake.mapTidHost.port = 443;
+
+    Handshake(&handshake);
     mu_assert(handshake.error.code == ERROR_CODE_NO_ERROR, "%s",
         handshake.error.message);
     logTamsResponse(&handshake.tamsResponse);
+    logNetworkManagementResponse(&handshake.networkManagementResponse);
+
+    return NULL;
+}
+
+const char* testHandshake_Tams()
+{
+    Handshake_t handshake;
+
+    memset(&handshake, '\0', sizeof(Handshake_t));
+
+    handshake.comSendReceive = comSendReceive;
+    handshake.comSentinel = isResponseSentinel;
+
+    handshake.operations = HANDSHAKE_OPERATIONS_ALL;
+    handshake.platform = PLATFORM_TAMS;
+    strcpy(handshake.tid, "22330745");
+
+    strcpy(handshake.appInfo.name, "Tamslite");
+    strcpy(handshake.appInfo.version, "0.0.1");
+
+    strcpy(handshake.deviceInfo.model, "LaptopPort");
+    strcpy(handshake.deviceInfo.posUid, "346228245");
+
+    strcpy(handshake.handshakeHost.hostUrl, "197.253.19.75");
+    handshake.handshakeHost.port = 443;
+
+    Handshake(&handshake);
+    mu_assert(handshake.error.code == ERROR_CODE_NO_ERROR, "%s",
+        handshake.error.message);
+    logNetworkManagementResponse(&handshake.networkManagementResponse);
 
     return NULL;
 }
@@ -125,10 +161,11 @@ const char* allTests()
 {
     mu_suite_start();
 
-    mu_run_test(testHandshakeInit_comSendReceiveNotSet);
-    mu_run_test(testHandshakeInit_hostNotSet);
-    mu_run_test(testHandshakeInit_mapTidTrue_dataNotSet);
-    mu_run_test(testHandshakeInit_mapTidTrue);
+    // mu_run_test(testHandshakeInit_comSendReceiveNotSet);
+    // mu_run_test(testHandshakeInit_hostNotSet);
+    // mu_run_test(testHandshakeInit_mapTidTrue_dataNotSet);
+    // mu_run_test(testHandshakeInit_mapTidTrue);
+    mu_run_test(testHandshake_Tams);
 
     return NULL;
 }

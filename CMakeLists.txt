@@ -12,18 +12,22 @@ file(GLOB XML_SRCS "ezxml/*.c")
 file(GLOB C8583_SRCS "c8583/*.c")
 file(GLOB DES_SRCS "des/*.c")
 file(GLOB SHA256_SRCS "sha256/*.c")
+file(GLOB PLATFORM_SRCS "platform/*.c")
+file(GLOB RC4_SRCS "rc4/*.c")
 
 add_library(xmldep STATIC ${XML_SRCS})
 add_library(c8583 STATIC ${C8583_SRCS})
 add_library(des STATIC ${DES_SRCS})
 add_library(sha256 STATIC ${SHA256_SRCS})
+add_library(platform STATIC ${PLATFORM_SRCS})
+add_library(rc4 STATIC ${RC4_SRCS})
 
 file(GLOB EFT_SRC "${PROJECT_SOURCE_DIR}/src/*.c")
 
 add_library(poseft_handshake SHARED ${EFT_SRC})
 target_include_directories(poseft_handshake PRIVATE ${PROJECT_SOURCE_DIR}/inc ".")
 target_compile_options(poseft_handshake PRIVATE -Wall -Wextra -pedantic)
-target_link_libraries(poseft_handshake sqlite3 xmldep c8583 des sha256)
+target_link_libraries(poseft_handshake sqlite3 xmldep c8583 des sha256 platform rc4)
 
 find_package(OpenSSL REQUIRED)
 

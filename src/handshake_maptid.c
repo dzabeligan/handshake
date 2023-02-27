@@ -12,10 +12,9 @@
 #include <stdio.h>
 
 #include "../dbg.h"
-#include "../ezxml/ezxml.h"
-#include "../inc/handshake_utils.h"
+#include "../platform/utils.h"
 
-#include "../inc/handshake.h"
+#include "../inc/handshake_internals.h"
 
 static const char* TAMS_ACCOUNT_TO_DEBIT_TAG = "ACCOUNT-TO-DEBIT";
 static const char* TAMS_ACCOUNT_NUMBER_TAG = "accountnum";
@@ -71,15 +70,15 @@ static const char* TAMS_VASURL_TAG = "VASURL";
 typedef enum { STATUS_READY, STATUS_NOT_READY } pos_status;
 
 /**
- * @brief Builds TAMS Request
+ * @brief Build TAMS Request
  *
- * @param handshake
- * @param requestBuf
- * @param bufLen
- * @return ssize_t
+ * @param requestBuf request buffer
+ * @param bufLen buffer length
+ * @param handshake handshake object
+ * @return ssize_t - length of request
  */
 static ssize_t buildTamsHomeRequest(
-    Handshake_t* handshake, char* requestBuf, size_t bufLen)
+    char* requestBuf, size_t bufLen, Handshake_t* handshake)
 {
     const char* TRANS_ADVICE_PATH
         = "tams/eftpos/devinterface/transactionadvice.php";
@@ -98,35 +97,6 @@ static ssize_t buildTamsHomeRequest(
     pos += snprintf(&requestBuf[pos], bufLen - pos, "%s", "\r\n\r\n");
 
     return pos;
-}
-
-/**
- * @brief Checks TAMS Error in Response
- *
- * @param handshake
- * @param root
- * @return short
- */
-static short checkTamsError(Handshake_t* handshake, ezxml_t root)
-{
-    ezxml_t msgTag, errorTag;
-
-    errorTag = ezxml_child(root, "error");
-
-    if (errorTag) {
-        msgTag = ezxml_child(errorTag, "errmsg");
-    } else {
-        msgTag = ezxml_child(root, "errmsg");
-    }
-
-    if (msgTag) {
-        log_err("%s", msgTag->txt);
-        snprintf(handshake->error.message, sizeof(handshake->error.message) - 1,
-            "%s", msgTag->txt);
-        return 1;
-    }
-
-    return 0;
 }
 
 /**
@@ -621,7 +591,10 @@ static short parseMapTidResponse(Handshake_t* handshake, char* response)
 
     root = ezxml_parse_str(response, strlen(response));
     check_mem(root);
-    check(checkTamsError(handshake, root) == 0, "TAMS Error");
+    check(checkTamsError(handshake->error.message,
+              sizeof(handshake->error.message) - 1, root)
+            == 0,
+        "TAMS Error");
     check(parseMapTidResponseHelper(handshake, root) == EXIT_SUCCESS,
         "Parse Error");
 
@@ -648,7 +621,7 @@ void Handshake_MapTid(Handshake_t* handshake)
     int ret = -1;
 
     handshake->error.code = ERROR_CODE_HANDSHAKE_MAPTID_ERROR;
-    pos = buildTamsHomeRequest(handshake, requestBuf, sizeof(requestBuf) - 1);
+    pos = buildTamsHomeRequest(requestBuf, sizeof(requestBuf) - 1, handshake);
     check(pos > 0, "Error building TAMS request");
     debug("Request: '%s'", requestBuf);
 

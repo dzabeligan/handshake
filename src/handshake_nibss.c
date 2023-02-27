@@ -15,7 +15,7 @@
 #include "../c8583/FieldNames.h"
 #include "../dbg.h"
 #include "../des/des.h"
-#include "../inc/handshake_utils.h"
+#include "../platform/utils.h"
 
 #include "../inc/handshake_internals.h"
 
@@ -595,7 +595,7 @@ static short getPinKey(Handshake_t* handshake)
         NETWORK_MANAGEMENT_PIN_KEY);
 }
 
-static short getParameter(Handshake_t* handshake)
+static short getParameters(Handshake_t* handshake)
 {
     debug("PARAMETER");
     return getNetworkData(handshake, NETWORK_MANAGEMENT_PARAMETER_DOWNLOAD);
@@ -612,6 +612,6 @@ void bindNibss(Handshake_Internals* handshake_internals)
     handshake_internals->getMasterKey = getMasterKey;
     handshake_internals->getSessionKey = getSessionKey;
     handshake_internals->getPinKey = getPinKey;
-    handshake_internals->getParameters = getParameter;
+    handshake_internals->getParameters = getParameters;
     handshake_internals->doCallHome = doCallHome;
 }

@@ -15,6 +15,8 @@
 extern "C" {
 #endif
 
+#include "../ezxml/ezxml.h"
+
 #include "../inc/handshake.h"
 
 /**
