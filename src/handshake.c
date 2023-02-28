@@ -12,20 +12,20 @@
 
 #include "../dbg.h"
 
-#include "../inc/handshake_internals.h"
+#include "handshake_internals.h"
 
-static short checkMapTidData(Handshake_t* handshake)
+static short checkMapDeviceData(Handshake_t* handshake)
 {
     return handshake->appInfo.name[0] && handshake->appInfo.version[0]
         && handshake->deviceInfo.model[0] && handshake->deviceInfo.posUid[0]
-        && handshake->mapTidHost.hostUrl[0] && handshake->mapTidHost.port != 0;
+        && handshake->mapDeviceHost.hostUrl[0] && handshake->mapDeviceHost.port != 0;
 }
 
 static short validateHandshakeData(Handshake_t* handshake)
 {
     if (!handshake->comSendReceive
-        || (!((handshake->mapTidHost.hostUrl[0]
-                  && handshake->mapTid == HANDSHAKE_MAPTID_TRUE)
+        || (!((handshake->mapDeviceHost.hostUrl[0]
+                  && handshake->mapDevice == HANDSHAKE_MAP_DEVICE_TRUE)
             || (handshake->handshakeHost.hostUrl[0]
                 && handshake->handshakeHost.port)))) {
         log_err("`comSendReceive` or `hosts` not set");
@@ -34,18 +34,18 @@ static short validateHandshakeData(Handshake_t* handshake)
         return EXIT_FAILURE;
     }
 
-    if (handshake->mapTid == HANDSHAKE_MAPTID_FALSE && !(handshake->tid[0])) {
-        log_err("TID can't be empty when `mapTid` is false");
+    if (handshake->mapDevice == HANDSHAKE_MAP_DEVICE_FALSE && !(handshake->tid[0])) {
+        log_err("TID can't be empty when `mapDevice` is false");
         snprintf(handshake->error.message, sizeof(handshake->error.message) - 1,
-            "TID can't be empty when `mapTid` is false");
+            "TID can't be empty when `mapDevice` is false");
         return EXIT_FAILURE;
     }
 
-    if (handshake->mapTid == HANDSHAKE_MAPTID_TRUE
-        && !checkMapTidData(handshake)) {
-        log_err("Map TID `data` or `host` not set");
+    if (handshake->mapDevice == HANDSHAKE_MAP_DEVICE_TRUE
+        && !checkMapDeviceData(handshake)) {
+        log_err("Map Device `data` or `host` not set");
         snprintf(handshake->error.message, sizeof(handshake->error.message) - 1,
-            "Map TID `data` or `mapTidHost` not set");
+            "Map Device `data` or `mapDeviceHost` not set");
         return EXIT_FAILURE;
     }
 
@@ -65,10 +65,6 @@ static short validateHandshakeData(Handshake_t* handshake)
 static void Handshake_Init(
     Handshake_t* handshake, Handshake_Internals* handshakeInternals)
 {
-    memset(&handshake->tamsResponse, '\0', sizeof(TAMSResponse));
-    memset(&handshake->networkManagementResponse, '\0',
-        sizeof(NetworkManagementResponse));
-
     handshake->error.code = ERROR_CODE_HANDSHAKE_INIT_ERROR;
 
     check(validateHandshakeData(handshake) == EXIT_SUCCESS,
@@ -76,6 +72,11 @@ static void Handshake_Init(
 
     if (handshake->operations == HANDSHAKE_OPERATIONS_NONE) {
         handshake->operations = HANDSHAKE_OPERATIONS_ALL;
+    }
+    if (handshake->operations == HANDSHAKE_OPERATIONS_ALL) {
+        memset(&handshake->tamsResponse, '\0', sizeof(TAMSResponse));
+        memset(&handshake->networkManagementResponse, '\0',
+            sizeof(NetworkManagementResponse));
     }
 
     if (handshake->platform == PLATFORM_NIBSS) {
@@ -208,10 +209,10 @@ void Handshake(Handshake_t* handshake)
     Handshake_Init(handshake, &handshakeInternals);
     check(handshake->error.code == ERROR_CODE_NO_ERROR, "Handshake Init Error");
 
-    if (handshake->mapTid == HANDSHAKE_MAPTID_TRUE) {
+    if (handshake->mapDevice == HANDSHAKE_MAP_DEVICE_TRUE) {
         Handshake_MapDevice(handshake);
         check(handshake->error.code == ERROR_CODE_NO_ERROR,
-            "Handshake Map TID Error");
+            "Handshake Map Device Error");
     }
 
     Handshake_GetHosts(handshake);

@@ -11,7 +11,7 @@
 #include "../dbg.h"
 #include "../platform/utils.h"
 
-#include "../inc/handshake_internals.h"
+#include "handshake_internals.h"
 
 static short getTamsHash(char* hash, const char* data, const char* key)
 {

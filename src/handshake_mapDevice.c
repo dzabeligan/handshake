@@ -14,58 +14,7 @@
 #include "../dbg.h"
 #include "../platform/utils.h"
 
-#include "../inc/handshake_internals.h"
-
-static const char* TAMS_ACCOUNT_TO_DEBIT_TAG = "ACCOUNT-TO-DEBIT";
-static const char* TAMS_ACCOUNT_NUMBER_TAG = "accountnum";
-static const char* TAMS_ACCOUNT_SELECTION_TAG = "accountSelection";
-static const char* TAMS_ADDRESS_TAG = "Address";
-static const char* TAMS_AGGREGATOR_NAME_TAG = "AggregatorName";
-static const char* TAMS_BALANCE_TAG = "balance";
-static const char* TAMS_COMMISSION_TAG = "commission";
-static const char* TAMS_EMAIL_TAG = "EMAIL";
-static const char* TAMS_MESSAGE_TAG = "message";
-static const char* TAMS_NOTIFICATION_ID_TAG_OPT = "NOTIFICATION_ID";
-static const char* TAMS_PHONE_TAG = "phone";
-static const char* TAMS_POS_SUPPORT_TAG = "POS_SUPPORT";
-static const char* TAMS_PRE_CONNECT_TAG = "PRE-CONNECT";
-static const char* TAMS_RRN_TAG = "RRN";
-static const char* TAMS_STAMP_DUTY_TAG = "STAMP_DUTY";
-static const char* TAMS_STAMP_DUTY_THRESHOLD_TAG = "STAMP_DUTY_THRESHOLD";
-static const char* TAMS_STAMP_LABEL_TAG = "STAMP_LABEL";
-static const char* TAMS_TERMAPPTYPE_TAG = "TERMAPPTYPE";
-static const char* TAMS_USER_ID_TAG = "USER-ID";
-
-// Terminals
-static const char* TAMS_AMP_TAG = "Amp";
-static const char* TAMS_MOREFUN_TAG = "MoreFun";
-static const char* TAMS_NEWLAND_TAG = "NewLand";
-static const char* TAMS_NEWPOS_TAG = "newpos";
-static const char* TAMS_NEXGO_TAG = "NexGo";
-static const char* TAMS_PAX_TAG = "PAX";
-static const char* TAMS_PAYSHARP_TAG = "PAYSHARP";
-static const char* TAMS_VERIFONE_TAG = "verifones";
-
-// Servers
-static const char* TAMS_PREFIX_TAG = "PREFIX";
-static const char* TAMS_PORT_TYPE_TAG = "PORT_TYPE";
-static const char* TAMS_TAMSPUBLIC_TAG = "TAMSPUBLIC";
-static const char* TAMS_EPMSPUBLIC_TAG = "EPMSPUBLIC";
-static const char* TAMS_EPMSPRIVATE_TAG = "EPMSPRIVATE";
-static const char* TAMS_EPMSPUBLIC_SSL_TAG = "EPMSPUBLIC_SSL";
-static const char* TAMS_EPMSPRIVATE_SSL_TAG = "EPMSPRIVATE_SSL";
-static const char* TAMS_POSVASPUBLIC_TAG = "POSVASPUBLIC";
-static const char* TAMS_POSVASPRIVATE_TAG = "POSVASPRIVATE";
-static const char* TAMS_POSVASPUBLIC_SSL_TAG = "POSVASPUBLIC_SSL";
-static const char* TAMS_POSVASPRIVATE_SSL_TAG = "POSVASPRIVATE_SSL";
-static const char* TAMS_REMOTEUPGRADE_PUBLIC_TAG = "REMOTEUPGRADE_PUBLIC";
-static const char* TAMS_REMOTEUPGRADE_PRIVATE_TAG = "REMOTEUPGRADE_PRIVATE";
-static const char* TAMS_CALLHOME_TIME_TAG = "CallhomeTime";
-static const char* TAMS_CALLHOME_PORT_TAG = "CallhomePort";
-static const char* TAMS_CALLHOME_IP_TAG = "CallhomeIp";
-static const char* TAMS_POSVAS_CALLHOME_PORT_TAG = "CallhomePosvasPort";
-static const char* TAMS_POSVAS_CALLHOME_IP_TAG = "CallhomePosvasIp";
-static const char* TAMS_VASURL_TAG = "VASURL";
+#include "handshake_internals.h"
 
 typedef enum { STATUS_READY, STATUS_NOT_READY } pos_status;
 
@@ -93,7 +42,7 @@ static ssize_t buildTamsHomeRequest(
         handshake->appInfo.name, handshake->appInfo.version,
         handshake->deviceInfo.model);
     pos += snprintf(&requestBuf[pos], bufLen - pos, "Host: %s:%d",
-        handshake->mapTidHost.hostUrl, handshake->mapTidHost.port);
+        handshake->mapDeviceHost.hostUrl, handshake->mapDeviceHost.port);
     pos += snprintf(&requestBuf[pos], bufLen - pos, "%s", "\r\n\r\n");
 
     return pos;
@@ -139,6 +88,14 @@ static short getTerminalFromTamsResponse(
 {
     ezxml_t item = NULL;
     short ret = EXIT_FAILURE;
+    const char* TAMS_AMP_TAG = "Amp";
+    const char* TAMS_MOREFUN_TAG = "MoreFun";
+    const char* TAMS_NEWLAND_TAG = "NewLand";
+    const char* TAMS_NEWPOS_TAG = "newpos";
+    const char* TAMS_NEXGO_TAG = "NexGo";
+    const char* TAMS_PAX_TAG = "PAX";
+    const char* TAMS_PAYSHARP_TAG = "PAYSHARP";
+    const char* TAMS_VERIFONE_TAG = "verifones";
 
     check((item = ezxml_child(tranTag, TAMS_AMP_TAG)), "Error Getting '%s'",
         TAMS_AMP_TAG);
@@ -239,14 +196,22 @@ error:
 
 /**
  * @brief Get the Middleware Servers object
- * 
- * @param tamsResponse 
- * @param tranTag 
- * @return short 
+ *
+ * @param tamsResponse
+ * @param tranTag
+ * @return short
  */
 static short getMiddlewareServers(TAMSResponse* tamsResponse, ezxml_t tranTag)
 {
     short ret = EXIT_FAILURE;
+    const char* TAMS_EPMSPUBLIC_TAG = "EPMSPUBLIC";
+    const char* TAMS_EPMSPRIVATE_TAG = "EPMSPRIVATE";
+    const char* TAMS_EPMSPUBLIC_SSL_TAG = "EPMSPUBLIC_SSL";
+    const char* TAMS_EPMSPRIVATE_SSL_TAG = "EPMSPRIVATE_SSL";
+    const char* TAMS_POSVASPUBLIC_TAG = "POSVASPUBLIC";
+    const char* TAMS_POSVASPRIVATE_TAG = "POSVASPRIVATE";
+    const char* TAMS_POSVASPUBLIC_SSL_TAG = "POSVASPUBLIC_SSL";
+    const char* TAMS_POSVASPRIVATE_SSL_TAG = "POSVASPRIVATE_SSL";
 
     check(getServersFromTamsResponseHelper(&tamsResponse->servers.epms, tranTag,
               TAMS_EPMSPRIVATE_TAG, TAMS_EPMSPUBLIC_TAG,
@@ -267,15 +232,17 @@ error:
 
 /**
  * @brief Get the Remote Upgrade Server object
- * 
- * @param tamsResponse 
- * @param tranTag 
- * @return short 
+ *
+ * @param tamsResponse
+ * @param tranTag
+ * @return short
  */
 static short getRemoteUpgradeServer(TAMSResponse* tamsResponse, ezxml_t tranTag)
 {
     ezxml_t item = NULL;
     short ret = EXIT_FAILURE;
+    const char* TAMS_REMOTEUPGRADE_PUBLIC_TAG = "REMOTEUPGRADE_PUBLIC";
+    const char* TAMS_REMOTEUPGRADE_PRIVATE_TAG = "REMOTEUPGRADE_PRIVATE";
 
     check((item = ezxml_child(tranTag, TAMS_REMOTEUPGRADE_PUBLIC_TAG)),
         "Error Getting '%s'", TAMS_REMOTEUPGRADE_PUBLIC_TAG);
@@ -294,15 +261,20 @@ error:
 
 /**
  * @brief Get the Call Home Servers object
- * 
- * @param tamsResponse 
- * @param tranTag 
- * @return short 
+ *
+ * @param tamsResponse
+ * @param tranTag
+ * @return short
  */
 static short getCallHomeServers(TAMSResponse* tamsResponse, ezxml_t tranTag)
 {
     ezxml_t item = NULL;
     short ret = EXIT_FAILURE;
+    const char* TAMS_CALLHOME_TIME_TAG = "CallhomeTime";
+    const char* TAMS_CALLHOME_PORT_TAG = "CallhomePort";
+    const char* TAMS_CALLHOME_IP_TAG = "CallhomeIp";
+    const char* TAMS_POSVAS_CALLHOME_PORT_TAG = "CallhomePosvasPort";
+    const char* TAMS_POSVAS_CALLHOME_IP_TAG = "CallhomePosvasIp";
 
     check((item = ezxml_child(tranTag, TAMS_CALLHOME_IP_TAG)),
         "Error Getting '%s'", TAMS_CALLHOME_IP_TAG);
@@ -343,6 +315,10 @@ static short getServersFromTamsResponse(
 {
     ezxml_t item = NULL;
     short ret = EXIT_FAILURE;
+    const char* TAMS_PREFIX_TAG = "PREFIX";
+    const char* TAMS_PORT_TYPE_TAG = "PORT_TYPE";
+    const char* TAMS_TAMSPUBLIC_TAG = "TAMSPUBLIC";
+    const char* TAMS_VASURL_TAG = "VASURL";
 
     check((item = ezxml_child(tranTag, TAMS_PREFIX_TAG)), "Error Getting '%s'",
         TAMS_PREFIX_TAG);
@@ -383,16 +359,19 @@ error:
 
 /**
  * @brief Get the Account Info From Tams Response object
- * 
- * @param handshake 
- * @param tranTag 
- * @return short 
+ *
+ * @param handshake
+ * @param tranTag
+ * @return short
  */
 static short getAccountInfoFromTamsResponse(
     Handshake_t* handshake, ezxml_t tranTag)
 {
     ezxml_t item = NULL;
     short ret = EXIT_FAILURE;
+    const char* TAMS_ACCOUNT_TO_DEBIT_TAG = "ACCOUNT-TO-DEBIT";
+    const char* TAMS_ACCOUNT_NUMBER_TAG = "accountnum";
+    const char* TAMS_ACCOUNT_SELECTION_TAG = "accountSelection";
 
     check((item = ezxml_child(tranTag, TAMS_ACCOUNT_TO_DEBIT_TAG)),
         "Unable to get %s tag", TAMS_ACCOUNT_TO_DEBIT_TAG);
@@ -419,16 +398,22 @@ error:
 
 /**
  * @brief Get the Customer Info From Tams Response object
- * 
- * @param handshake 
- * @param tranTag 
- * @return short 
+ *
+ * @param handshake
+ * @param tranTag
+ * @return short
  */
 static short getCustomerInfoFromTamsResponse(
     Handshake_t* handshake, ezxml_t tranTag)
 {
     ezxml_t item = NULL;
     short ret = EXIT_FAILURE;
+    const char* TAMS_ADDRESS_TAG = "Address";
+    const char* TAMS_AGGREGATOR_NAME_TAG = "AggregatorName";
+    const char* TAMS_EMAIL_TAG = "EMAIL";
+    const char* TAMS_PHONE_TAG = "phone";
+    const char* TAMS_TERMAPPTYPE_TAG = "TERMAPPTYPE";
+    const char* TAMS_USER_ID_TAG = "USER-ID";
 
     check((item = ezxml_child(tranTag, TAMS_ADDRESS_TAG)),
         "Unable to get %s tag", TAMS_ADDRESS_TAG);
@@ -476,15 +461,24 @@ error:
 
 /**
  * @brief Get the Tams Response Helper object
- * 
- * @param handshake 
- * @param tranTag 
- * @return short 
+ *
+ * @param handshake
+ * @param tranTag
+ * @return short
  */
 static short getTamsResponseHelper(Handshake_t* handshake, ezxml_t tranTag)
 {
     ezxml_t item = NULL;
     short ret = EXIT_FAILURE;
+    const char* TAMS_BALANCE_TAG = "balance";
+    const char* TAMS_COMMISSION_TAG = "commission";
+    const char* TAMS_NOTIFICATION_ID_TAG_OPT = "NOTIFICATION_ID";
+    const char* TAMS_POS_SUPPORT_TAG = "POS_SUPPORT";
+    const char* TAMS_PRE_CONNECT_TAG = "PRE-CONNECT";
+    const char* TAMS_RRN_TAG = "RRN";
+    const char* TAMS_STAMP_DUTY_TAG = "STAMP_DUTY";
+    const char* TAMS_STAMP_DUTY_THRESHOLD_TAG = "STAMP_DUTY_THRESHOLD";
+    const char* TAMS_STAMP_LABEL_TAG = "STAMP_LABEL";
 
     check(getAccountInfoFromTamsResponse(handshake, tranTag) == EXIT_SUCCESS,
         "Parse Error");
@@ -557,6 +551,7 @@ static short getTamsResponse(Handshake_t* handshake, ezxml_t tranTag)
 {
     ezxml_t item = NULL;
     short ret = EXIT_FAILURE;
+    const char* TAMS_MESSAGE_TAG = "message";
 
     check((item = ezxml_child(tranTag, TAMS_MESSAGE_TAG))
             && isdigit(item->txt[0]),
@@ -669,7 +664,7 @@ void Handshake_MapDevice(Handshake_t* handshake)
 
     ret = handshake->comSendReceive(responseBuf, sizeof(responseBuf) - 1,
         (unsigned char*)requestBuf, sizeof(requestBuf) - 1,
-        handshake->mapTidHost.hostUrl, handshake->mapTidHost.port,
+        handshake->mapDeviceHost.hostUrl, handshake->mapDeviceHost.port,
         handshake->comSentinel, "</efttran>");
     check(ret > 0, "Error sending or receiving request");
     debug("Response: '%s (%d)'", responseBuf, ret);
@@ -680,7 +675,6 @@ void Handshake_MapDevice(Handshake_t* handshake)
 
     handshake->error.code = ERROR_CODE_NO_ERROR;
     memset(handshake->error.message, '\0', sizeof(handshake->error.message));
-
 error:
     if (ret >= 0 && !handshake->error.message[0]) {
         snprintf(handshake->error.message, sizeof(handshake->error.message) - 1,

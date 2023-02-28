@@ -32,13 +32,13 @@ typedef enum {
 } PtadKey;
 
 /**
- * @brief Map Tid bool
+ * @brief Map Device bool
  *
  */
 typedef enum {
-    HANDSHAKE_MAPTID_FALSE,
-    HANDSHAKE_MAPTID_TRUE,
-} HandshakeMapTid;
+    HANDSHAKE_MAP_DEVICE_FALSE,
+    HANDSHAKE_MAP_DEVICE_TRUE,
+} HandshakeMapDevice;
 
 /**
  * @brief Handshake platform
@@ -386,13 +386,13 @@ typedef struct NetworkManagementResponse {
  * @appInfo: Application information
  * @deviceInfo: Device information
  * @simInfo: SIM Information
- * @mapTid: should map tid
+ * @mapDevice: should map device
  * @operations: operations to perform
  * @platform: platform
  * @ptadKey: ptad key type
  * @callHomeHost: call home host
  * @handshakeHost: handshake host
- * @mapTidHost: map tid host
+ * @mapDeviceHost: map device host
  * @networkManagementResponse: network management response
  * @tamsResponse: TAMS response
  * @comSendReceive: send and receive function pointer
@@ -410,7 +410,7 @@ typedef struct Handshake_t {
     struct simInfo simInfo;
 
     // enums
-    HandshakeMapTid mapTid;
+    HandshakeMapDevice mapDevice;
     HandshakeOperations operations;
     Platform platform;
     PtadKey ptadKey;
@@ -418,7 +418,7 @@ typedef struct Handshake_t {
     // hosts
     Host callHomeHost;
     Host handshakeHost;
-    Host mapTidHost;
+    Host mapDeviceHost;
 
     // responses
     NetworkManagementResponse networkManagementResponse;

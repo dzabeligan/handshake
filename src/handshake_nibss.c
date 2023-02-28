@@ -17,7 +17,7 @@
 #include "../des/des.h"
 #include "../platform/utils.h"
 
-#include "../inc/handshake_internals.h"
+#include "handshake_internals.h"
 
 typedef enum {
     NETWORK_MANAGEMENT_MASTER_KEY,
@@ -166,6 +166,9 @@ static void getDecryptionKey(Handshake_t* handshake,
     NetworkManagementType networkManagementType, char* decryptionKey,
     size_t keyBufLen)
 {
+    if (handshake->ptadKey == PTAD_KEY_UNKNOWN)
+        return;
+
     if (networkManagementType == NETWORK_MANAGEMENT_MASTER_KEY) {
         strncpy(decryptionKey, getPtadKey(handshake->ptadKey), keyBufLen);
     } else {
@@ -261,6 +264,7 @@ static int buildNetworkManagementIso(unsigned char* packetBuf, size_t len,
 
         getDecryptionKey(handshake, NETWORK_MANAGEMENT_SESSION_KEY,
             decryptionKey, sizeof(decryptionKey));
+        check(decryptionKey[0], "Error getting decryption key");
         getClearKey(clearKey, sizeof(clearKey),
             (char*)handshake->networkManagementResponse.session.key,
             decryptionKey);
@@ -513,6 +517,10 @@ static short validateKey(Handshake_t* handshake, Key* key,
 
     getDecryptionKey(
         handshake, networkManagementType, decryptionKey, sizeof(decryptionKey));
+    if(!decryptionKey[0]) {
+        log_err("Error getting decryption key");
+        return EXIT_FAILURE;
+    }
     getClearKey(clearKey, sizeof(clearKey), (char*)key->key, decryptionKey);
 
     debug("Decryption key '%s'", decryptionKey);
