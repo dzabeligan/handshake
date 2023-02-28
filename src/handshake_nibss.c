@@ -310,8 +310,7 @@ static int getValue(char* line, char* value, int nCopy)
     return 0;
 }
 
-static short parseDE62(
-    Handshake_t* handshake, const char* de62, const int size)
+static short parseDE62(Handshake_t* handshake, const char* de62, const int size)
 {
     int tagLen, valueWidth;
     char current[0x512] = { '\0' };
@@ -607,6 +606,13 @@ static short doCallHome(Handshake_t* handshake)
     return getNetworkData(handshake, NETWORK_MANAGEMENT_CALL_HOME);
 }
 
+static short getEftTotal(Handshake_t* handshake)
+{
+    (void)handshake;
+    debug("EFT TOTAL");
+    return EXIT_SUCCESS;
+}
+
 void bindNibss(Handshake_Internals* handshake_internals)
 {
     handshake_internals->getMasterKey = getMasterKey;
@@ -614,4 +620,5 @@ void bindNibss(Handshake_Internals* handshake_internals)
     handshake_internals->getPinKey = getPinKey;
     handshake_internals->getParameters = getParameters;
     handshake_internals->doCallHome = doCallHome;
+    handshake_internals->getEftTotal = getEftTotal;
 }

@@ -61,12 +61,9 @@ static int buildTamsHttpRequest(char* requestBuf, size_t bufLen,
     char hash[0x100] = { '\0' };
 
     if (data) {
-        char key[0x100] = { '\0' };
-
-        // decryptTamsKey(key, handshake->networkManagementResponse.session.key,
-        //     handshake->tid, handshake->networkManagementResponse.master.key);
-        debug("Clear key: %s", key);
-        check(getTamsHash(hash, data, key) == EXIT_SUCCESS,
+        check(getTamsHash(hash, data,
+                  (char*)handshake->networkManagementResponse.session.key)
+                == EXIT_SUCCESS,
             "Error Generating TAMS Hash");
     }
 
@@ -154,6 +151,10 @@ static short parseGetKeysResponse(Handshake_t* handshake, char* response)
 {
     ezxml_t root = NULL, cipher = NULL;
     int ret = EXIT_FAILURE;
+    const int PIN_KEY_INDEX = 2;
+    char clearKeys[3][33] = { { '\0' }, { '\0' }, { '\0' } };
+    char encryptedKeys[3][33] = { { '\0' }, { '\0' }, { '\0' } };
+    int i = 0;
 
     root = ezxml_parse_str(response, strlen(response));
     check_mem(root);
@@ -163,24 +164,29 @@ static short parseGetKeysResponse(Handshake_t* handshake, char* response)
         "TAMS Error");
     check((cipher = ezxml_child(root, "cipher")), "Error Getting `cipher`");
 
-    do {
+    for (i = 0; i <= PIN_KEY_INDEX; cipher = ezxml_next(cipher), i++) {
         ezxml_t number, key;
 
         check((number = ezxml_child(cipher, "no")), "Error Getting `no`");
-        if (strncmp(number->txt, "1", 1) == 0) {
+        if (strncmp(number->txt, "0", 1) == 0) {
             check((key = ezxml_child(cipher, "key")), "Error Getting `key`");
-            strncpy((char*)handshake->networkManagementResponse.session.key,
-                key->txt,
-                sizeof(handshake->networkManagementResponse.session.key));
+            strncpy(encryptedKeys[0], key->txt, sizeof(encryptedKeys[0]));
+        } else if (strncmp(number->txt, "1", 1) == 0) {
+            check((key = ezxml_child(cipher, "key")), "Error Getting `key`");
+            strncpy(encryptedKeys[1], key->txt, sizeof(encryptedKeys[1]));
         } else if (strncmp(number->txt, "2", 1) == 0) {
             check((key = ezxml_child(cipher, "key")), "Error Getting `key`");
-            strncpy((char*)handshake->networkManagementResponse.pin.key,
-                key->txt, sizeof(handshake->networkManagementResponse.pin.key));
+            strncpy(encryptedKeys[2], key->txt, sizeof(encryptedKeys[2]));
         }
-        cipher = ezxml_next(cipher);
-    } while (!handshake->networkManagementResponse.session.key[0]
-        || !handshake->networkManagementResponse.pin.key[0]);
+    }
 
+    decryptTamsKey(clearKeys, encryptedKeys, handshake->tid,
+        (char*)handshake->networkManagementResponse.master.key,
+        PIN_KEY_INDEX + 1);
+    strncpy((char*)handshake->networkManagementResponse.session.key,
+        clearKeys[1], sizeof(handshake->networkManagementResponse.session.key));
+    strncpy((char*)handshake->networkManagementResponse.pin.key, clearKeys[2],
+        sizeof(handshake->networkManagementResponse.pin.key));
     ret = EXIT_SUCCESS;
 error:
     ezxml_free(root);
@@ -228,6 +234,98 @@ static short getPinKey(Handshake_t* handshake)
     return EXIT_SUCCESS;
 }
 
+static short parseGetParametersResponse(Handshake_t* handshake, char* response)
+{
+    ezxml_t root, dateTimeTag, item;
+    char year[5] = { '\0' };
+    char month[3] = { '\0' };
+    char day[3] = { '\0' };
+    char hour[3] = { '\0' };
+    char minutes[3] = { '\0' };
+    char seconds[3] = { '\0' };
+    int ret = EXIT_FAILURE;
+
+    root = ezxml_parse_str(response, strlen(response));
+    check_mem(root);
+    check(checkTamsError(handshake->error.message,
+              sizeof(handshake->error.message) - 1, root)
+            == 0,
+        "TAMS Error");
+
+    check((dateTimeTag = ezxml_child(root, "datetime")),
+        "Error Getting `datetime`");
+
+    check((item = ezxml_child(dateTimeTag, "year")), "Error Getting `year`");
+    strncpy(year, item->txt, sizeof(year));
+
+    check((item = ezxml_child(dateTimeTag, "mon")), "Error Getting `mon`");
+    strncpy(month, item->txt, sizeof(month));
+
+    check((item = ezxml_child(dateTimeTag, "day")), "Error Getting `day`");
+    strncpy(day, item->txt, sizeof(day));
+
+    check((item = ezxml_child(dateTimeTag, "hour")), "Error Getting `hour`");
+    strncpy(hour, item->txt, sizeof(hour));
+
+    check((item = ezxml_child(dateTimeTag, "min")), "Error Getting `min`");
+    strncpy(minutes, item->txt, sizeof(minutes));
+
+    check((item = ezxml_child(dateTimeTag, "sec")), "Error Getting `sec`");
+    strncpy(seconds, item->txt, sizeof(seconds));
+
+    sprintf(handshake->networkManagementResponse.parameters.serverDateAndTime,
+        "%s%s%s%s%s%s", year, month, day, hour, minutes, seconds);
+
+    check(
+        (item = ezxml_child(root, "merchantid")), "Error Getting `merchantid`");
+
+    strncpy(handshake->networkManagementResponse.parameters.cardAcceptorID,
+        item->txt,
+        sizeof(handshake->networkManagementResponse.parameters.cardAcceptorID));
+
+    check((item = ezxml_child(root, "currcode")), "Error Getting `currcode`");
+
+    strncpy(handshake->networkManagementResponse.parameters.currencyCode,
+        item->txt,
+        sizeof(handshake->networkManagementResponse.parameters.currencyCode));
+
+    check((item = ezxml_child(root, "countrycode")),
+        "Error Getting `countrycode`");
+
+    strncpy(handshake->networkManagementResponse.parameters.countryCode,
+        item->txt,
+        sizeof(handshake->networkManagementResponse.parameters.countryCode));
+
+    check((item = ezxml_child(root, "currency")), "Error Getting `currency`");
+
+    strncpy(handshake->networkManagementResponse.parameters.currencySymbol,
+        item->txt,
+        sizeof(handshake->networkManagementResponse.parameters.currencySymbol));
+
+    check((item = ezxml_child(root, "footer")), "Error Getting `footer`");
+
+    strncpy(handshake->networkManagementResponse.parameters.footer, item->txt,
+        sizeof(handshake->networkManagementResponse.parameters.footer));
+
+    check((item = ezxml_child(root, "header")), "Error Getting `header`");
+
+    strncpy(handshake->networkManagementResponse.parameters.header, item->txt,
+        sizeof(handshake->networkManagementResponse.parameters.header));
+
+    check((item = ezxml_child(root, "endofday")), "Error Getting `endofday`");
+    handshake->networkManagementResponse.parameters.endOfDay = atol(item->txt);
+
+    check((item = ezxml_child(root, "pinreset")), "Error Getting `pinreset`");
+    handshake->networkManagementResponse.parameters.resetPin
+        = strncmp(item->txt, "Y", 1) == 0;
+
+    ret = EXIT_SUCCESS;
+error:
+    ezxml_free(root);
+
+    return ret;
+}
+
 static short getParameters(Handshake_t* handshake)
 {
     int len = -1;
@@ -252,9 +350,9 @@ static short getParameters(Handshake_t* handshake)
     check(len > 0, "Error sending or receiving request");
     debug("Response: '%s (%d)'", responseBuf, len);
 
-    // check(parseGetKeysResponse(handshake, (char*)responseBuf) ==
-    // EXIT_SUCCESS,
-    //     "Parse Error");
+    check(parseGetParametersResponse(handshake, (char*)responseBuf)
+            == EXIT_SUCCESS,
+        "Parse Error");
 
     ret = EXIT_SUCCESS;
 error:
@@ -273,6 +371,72 @@ static short doCallHome(Handshake_t* handshake)
     return EXIT_SUCCESS;
 }
 
+static short parseGetEftTotalResponse(Handshake_t* handshake, char* response)
+{
+    ezxml_t root, item;
+    int ret = EXIT_FAILURE;
+
+    root = ezxml_parse_str(response, strlen(response));
+    check_mem(root);
+    check(checkTamsError(handshake->error.message,
+              sizeof(handshake->error.message) - 1, root)
+            == 0,
+        "TAMS Error");
+
+    check((item = ezxml_child(root, "result")), "Error Getting `result`");
+    check(strncmp(item->txt, "0", 1) == 0 || strncmp(item->txt, "100", 3) == 0,
+        "EFT Total result `%s`", item->txt);
+
+    check((item = ezxml_child(root, "batchno")), "Error Getting `batchno`");
+    handshake->networkManagementResponse.parameters.batchNumber
+        = atoi(item->txt);
+    ret = EXIT_SUCCESS;
+error:
+    ezxml_free(root);
+
+    return ret;
+}
+
+static short getEftTotal(Handshake_t* handshake)
+{
+    int len = -1;
+    char requestBuf[0x1000] = { '\0' };
+    unsigned char responseBuf[0x1000] = { '\0' };
+    int ret = EXIT_FAILURE;
+    char data[0x100] = { '\0' };
+    const char* EFT_TOTAL_PATH = "tams/eftpos/devinterface/efttotals.php";
+
+    debug("EFT TOTAL");
+    snprintf(data, sizeof(data) - 1,
+        "BATCHNO=%d&T=%d&A=%d&PC=%d&PV=%d&PRC=%d&PRV=%d&RC=%d&RV=%d&RRC=%d&"
+        "RRV=%d",
+        handshake->networkManagementResponse.parameters.batchNumber, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0);
+    len = buildTamsHttpRequest(
+        requestBuf, sizeof(requestBuf) - 1, handshake, data, EFT_TOTAL_PATH);
+    check(len > 0, "Error Building TAMS Request");
+    debug("Request: '%s'", requestBuf);
+
+    len = handshake->comSendReceive(responseBuf, sizeof(responseBuf) - 1,
+        (unsigned char*)requestBuf, sizeof(requestBuf) - 1,
+        handshake->handshakeHost.hostUrl, handshake->handshakeHost.port,
+        handshake->comSentinel, "</efttotals>");
+    check(len > 0, "Error sending or receiving request");
+    debug("Response: '%s (%d)'", responseBuf, len);
+
+    check(
+        parseGetEftTotalResponse(handshake, (char*)responseBuf) == EXIT_SUCCESS,
+        "Parse Error");
+
+    ret = EXIT_SUCCESS;
+error:
+    if (ret != EXIT_SUCCESS && !handshake->error.message[0]) {
+        snprintf(handshake->error.message, sizeof(handshake->error.message) - 1,
+            "Error Getting Session Keys");
+    }
+    return ret;
+}
+
 void bindTams(Handshake_Internals* handshake_internals)
 {
     handshake_internals->getMasterKey = getMasterKey;
@@ -280,4 +444,5 @@ void bindTams(Handshake_Internals* handshake_internals)
     handshake_internals->getPinKey = getPinKey;
     handshake_internals->getParameters = getParameters;
     handshake_internals->doCallHome = doCallHome;
+    handshake_internals->getEftTotal = getEftTotal;
 }

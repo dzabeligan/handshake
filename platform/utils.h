@@ -19,8 +19,9 @@ void splitStr(char* firstPart, size_t fLen, char* secondPart, size_t sLen,
 short isApprovedResponse(const char* responseCode);
 short generateMac(unsigned char* mac, const unsigned char* key,
     const int keySize, const unsigned char* packet, const int packetSize);
-int decryptTamsKey(
-    char* clearKey, char* encryptedKey, const char* tid, const char* masterKey);
+int decryptTamsKey(char (*clearSessionKeys)[33],
+    char (*encryptedSessionKeys)[33], const char* tid, const char* masterKey,
+    const int keySize);
 short get256Hash(
     char* hash, const int size, char* packet, const char* sessionKey);
 short checkTamsError(char* message, size_t bufLen, ezxml_t root);

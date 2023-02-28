@@ -174,44 +174,52 @@ void logTamsResponse(TAMSResponse* tamsResponse)
 
 /**
  * @brief Log Key
- * 
- * @param key 
- * @param title 
+ *
+ * @param key
+ * @param title
  */
 void logKey(Key* key, const char* title)
 {
     debug("%s", title);
     debug("Key:                           %s", key->key);
     debug("KCV:                           %s", key->kcv);
-
 }
 
 /**
  * @brief Log Parameters
- * 
- * @param parameters 
+ *
+ * @param parameters
  */
 void logParameter(Parameters* parameters)
 {
+    debug("Batch Number:                  %d", parameters->batchNumber);
     debug("Call Home Time:                %s", parameters->callHomeTime);
     debug("Card Acceptor ID:              %s", parameters->cardAcceptorID);
     debug("Country Code:                  %s", parameters->countryCode);
     debug("Currency Code:                 %s", parameters->currencyCode);
-    debug("Merchant Category Code:        %s", parameters->merchantCategoryCode);
-    debug("Merchant Name and Location:    %s", parameters->merchantNameAndLocation);
+    debug("Currency Symbol:               %s", parameters->currencySymbol);
+    debug("End of Day:                    %ld", parameters->endOfDay);
+    debug("Footer:                        %s", parameters->footer);
+    debug("Header:                        %s", parameters->header);
+    debug(
+        "Merchant Category Code:        %s", parameters->merchantCategoryCode);
+    debug("Merchant Name and Location:    %s",
+        parameters->merchantNameAndLocation);
+    debug("Reset PIN:                     %d", parameters->resetPin);
     debug("Server Date and Time:          %s", parameters->serverDateAndTime);
     debug("Timeout:                       %s", parameters->timeout);
-
 }
 
 /**
  * @brief Log Network Management Response
- * 
- * @param networkManagementResponse 
+ *
+ * @param networkManagementResponse
  */
-void logNetworkManagementResponse(NetworkManagementResponse* networkManagementResponse)
+void logNetworkManagementResponse(
+    NetworkManagementResponse* networkManagementResponse)
 {
-    debug("Response Code:                 %s", networkManagementResponse->responseCode);
+    debug("Response Code:                 %s",
+        networkManagementResponse->responseCode);
     logKey(&networkManagementResponse->master, "MASTER KEY");
     logKey(&networkManagementResponse->session, "SESSION KEY");
     logKey(&networkManagementResponse->pin, "PIN KEY");

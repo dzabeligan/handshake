@@ -263,11 +263,13 @@ static int bin2hex(unsigned char* pcInBuffer, char* pcOutBuffer, int iLen)
     return 0;
 }
 
-int decryptTamsKey(
-    char* clearKey, char* encryptedKey, const char* tid, const char* masterKey)
+int decryptTamsKey(char (*clearSessionKeys)[33],
+    char (*encryptedSessionKeys)[33], const char* tid, const char* masterKey,
+    const int keySize)
 {
     unsigned char acKey[33];
     unsigned char keyBin[17];
+    int i = 0;
 
     rc4_state state;
     char paddedTid[17] = { '\0' };
@@ -285,13 +287,16 @@ int decryptTamsKey(
 
     rc4_init(&state, acKey, 32);
 
-    memset(keyBin, 0, sizeof(keyBin));
+    for (i = 0; i < keySize; i++) {
 
-    hex2bin(encryptedKey, (char*)keyBin, 16);
+        memset(keyBin, 0, sizeof(keyBin));
 
-    rc4_crypt(&state, keyBin, 16);
+        hex2bin(encryptedSessionKeys[i], (char*)keyBin, 16);
 
-    bin2hex(keyBin, clearKey, 16);
+        rc4_crypt(&state, keyBin, 16);
+
+        bin2hex(keyBin, clearSessionKeys[i], 16);
+    }
 
     return 0;
 }

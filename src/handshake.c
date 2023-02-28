@@ -188,7 +188,11 @@ static void Handshake_Run(
     }
     if (handshake->operations & HANDSHAKE_OPERATIONS_CALLHOME) {
         check(handshakeInternals->doCallHome(handshake) == EXIT_SUCCESS,
-            "Error Getting Call Home");
+            "Error Doing Call Home");
+    }
+    if (handshake->operations & HANDSHAKE_OPERATIONS_EFT_TOTAL) {
+        check(handshakeInternals->getEftTotal(handshake) == EXIT_SUCCESS,
+            "Error Getting EFT Total");
     }
 
     handshake->error.code = ERROR_CODE_NO_ERROR;

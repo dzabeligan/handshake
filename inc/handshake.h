@@ -111,6 +111,7 @@ typedef enum {
     HANDSHAKE_OPERATIONS_PIN_KEY = 1 << 2,
     HANDSHAKE_OPERATIONS_PARAMETER = 1 << 3,
     HANDSHAKE_OPERATIONS_CALLHOME = 1 << 4,
+    HANDSHAKE_OPERATIONS_EFT_TOTAL = 1 << 5,
     HANDSHAKE_OPERATIONS_ALL = 0xFF,
 } HandshakeOperations;
 
@@ -346,12 +347,18 @@ typedef struct Key {
  *
  */
 typedef struct Parameters {
+    int batchNumber;
     char callHomeTime[25];
     char cardAcceptorID[41];
     char countryCode[8];
     char currencyCode[8];
+    char currencySymbol[8];
+    long endOfDay;
+    char footer[40];
+    char header[40];
     char merchantCategoryCode[8];
     char merchantNameAndLocation[41];
+    short resetPin;
     char serverDateAndTime[20];
     char timeout[34];
 } Parameters;
