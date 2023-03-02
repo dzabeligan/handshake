@@ -63,9 +63,9 @@ typedef enum {
  *
  */
 typedef enum {
+    MIDDLEWARE_SERVER_TYPE_UNKNOWN,
     MIDDLEWARE_SERVER_TYPE_POSVAS,
     MIDDLEWARE_SERVER_TYPE_EPMS,
-    MIDDLEWARE_SERVER_TYPE_UNKNOWN,
 } MiddlewareServerType;
 
 /**
@@ -73,10 +73,10 @@ typedef enum {
  *
  */
 typedef enum {
+    TERMINAL_APP_TYPE_UNKNOWN,
     TERMINAL_APP_TYPE_MERCHANT,
     TERMINAL_APP_TYPE_AGENT,
     TERMINAL_APP_TYPE_CONVERTED,
-    TERMINAL_APP_TYPE_UNKNOWN,
 } TerminalAppType;
 
 /**
@@ -431,6 +431,34 @@ typedef struct Handshake_t {
 
     Error error;
 } Handshake_t;
+
+#define HANDSHAKE_INIT_DATA                                                    \
+    { { '\0' }, { { '\0' }, { '\0' } }, { { '\0' }, { '\0' } },                \
+        { SIM_TYPE_PUBLIC, { '\0' } }, HANDSHAKE_MAP_DEVICE_FALSE,             \
+        HANDSHAKE_OPERATIONS_ALL, PLATFORM_NIBSS, PTAD_KEY_UNKNOWN,            \
+        { { '\0' }, 0, CONNECTION_TYPE_PLAIN, 0 },                             \
+        { { '\0' }, 0, CONNECTION_TYPE_PLAIN, 0 },                             \
+        { { '\0' }, 0, CONNECTION_TYPE_PLAIN, 0 },                             \
+        { { '\0' }, { { '\0' }, { '\0' } }, { { '\0' }, { '\0' } },            \
+            { { '\0' }, { '\0' } },                                            \
+            { 0, { '\0' }, { '\0' }, { '\0' }, { '\0' }, { '\0' }, 0,          \
+                { '\0' }, { '\0' }, { '\0' }, { '\0' }, 0, { '\0' },           \
+                { '\0' } } },                                                  \
+        { { '\0' }, { '\0' }, 0, { '\0' }, { '\0' }, { '\0' }, { '\0' },       \
+            { '\0' }, { '\0' }, { '\0' }, { '\0' }, { '\0' }, { '\0' },        \
+            { '\0' }, { '\0' }, { '\0' }, { '\0' }, TERMINAL_APP_TYPE_UNKNOWN, \
+            { '\0' },                                                          \
+            { { '\0' }, { '\0' }, { '\0' }, { '\0' }, { '\0' }, { '\0' },      \
+                { '\0' }, { '\0' } },                                          \
+            { CONNECTION_TYPE_PLAIN, MIDDLEWARE_SERVER_TYPE_UNKNOWN,           \
+                { { '\0' }, 0 }, { { '\0' }, 0 }, { { '\0' }, 0 }, 0,          \
+                { { { '\0' }, 0 }, { { '\0' }, 0 } },                          \
+                { { { { '\0' }, 0 }, { { '\0' }, 0 } },                        \
+                    { { { '\0' }, 0 }, { { '\0' }, 0 } } },                    \
+                { { { { '\0' }, 0 }, { { '\0' }, 0 } },                        \
+                    { { { '\0' }, 0 }, { { '\0' }, 0 } } },                    \
+                { '\0' } } },                                                  \
+        NULL, NULL, NULL, { ERROR_CODE_ERROR, { '\0' } } }
 
 void logTamsResponse(TAMSResponse* tamsResponse);
 void logTerminals(TAMSResponse* tamsResponse);
