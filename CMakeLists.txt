@@ -39,7 +39,7 @@ if(OpenSSL_FOUND)
 endif(OpenSSL_FOUND)
 
 set(TEST_TARGET poseft_handshake_tests)
-file(GLOB HANDSHAKEAPP_SRC "${PROJECT_SOURCE_DIR}/tests/*.c" "${PROJECT_SOURCE_DIR}/platform/*.c" "${PROJECT_SOURCE_DIR}/src/platform/*.cpp")
+file(GLOB HANDSHAKEAPP_SRC "${PROJECT_SOURCE_DIR}/tests/*.c")
 add_executable(${TEST_TARGET} ${HANDSHAKEAPP_SRC})
 target_include_directories(${TEST_TARGET} PRIVATE ${PROJECT_SOURCE_DIR}/${DEP_DIR} ".")
 target_link_libraries(${TEST_TARGET} poseft_handshake ${OPENSSL_CRYPTO_LIBRARY} ${OPENSSL_SSL_LIBRARY})
