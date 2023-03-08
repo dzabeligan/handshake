@@ -28,18 +28,6 @@ typedef enum {
     NETWORK_MANAGEMENT_UNKNOWN,
 } NetworkManagementType;
 
-static short c8583Check(
-    Handshake_t* handshake, const short failed, IsoMsg isoMsg)
-{
-    if (failed) {
-        snprintf(handshake->error.message, sizeof(handshake->error.message) - 1,
-            "ISO Error - %s", getMessage(isoMsg));
-        return EXIT_FAILURE;
-    }
-
-    return EXIT_SUCCESS;
-}
-
 static const char* networkManagementTypeToProcessCode(
     NetworkManagementType networkManagementType)
 {
@@ -132,7 +120,7 @@ static short checkKeyValue(const char* key, const char* kcv)
 {
     unsigned char keyBcd[16];
     unsigned char actualCheckValueBcd[16] = { '\0' };
-    unsigned char data[9] = "\x00\x00\x00\x00\x00\x00";
+    unsigned char data[9] = "\x00\x00\x00\x00\x00\x00\x00\x00";
     char actualCheckValueStr[33] = { '\0' };
 
     debug("Key: '%s'", key);
@@ -203,56 +191,39 @@ static int buildNetworkManagementIso(unsigned char* packetBuf, size_t len,
     strftime(dateBuff, sizeof(dateBuff), "%m%d", &now_t);
     strftime(timeBuff, sizeof(timeBuff), "%H%M%S", &now_t);
 
-    check(c8583Check(handshake,
-              setDatum(
-                  isoMsg, MESSAGE_TYPE_INDICATOR_0, NETWORK_MANAGEMENT_MTI, 4),
-              isoMsg)
-            == EXIT_SUCCESS,
-        "Error Setting MTI");
-    check(c8583Check(handshake,
-              setDatum(isoMsg, PROCESSING_CODE_3,
-                  (unsigned char*)processingCode, strlen(processingCode)),
-              isoMsg)
-            == EXIT_SUCCESS,
-        "Error Setting DE 3");
-    check(c8583Check(handshake,
-              setDatum(isoMsg, TRANSACTION_DATE_TIME_7,
-                  (unsigned char*)dateTimeBuff, strlen(dateTimeBuff)),
-              isoMsg)
-            == EXIT_SUCCESS,
-        "Error Setting DE 7");
-    check(c8583Check(handshake,
-              setDatum(isoMsg, SYSTEM_TRACE_AUDIT_NUMBER_11,
-                  (unsigned char*)timeBuff, strlen(timeBuff)),
-              isoMsg)
-            == EXIT_SUCCESS,
-        "Error Setting DE 11");
-    check(c8583Check(handshake,
-              setDatum(isoMsg, LOCAL_TRANSACTION_TIME_12,
-                  (unsigned char*)timeBuff, strlen(timeBuff)),
-              isoMsg)
-            == EXIT_SUCCESS,
-        "Error Setting DE 12");
-    check(c8583Check(handshake,
-              setDatum(isoMsg, LOCAL_TRANSACTION_DATE_13,
-                  (unsigned char*)dateBuff, strlen(dateBuff)),
-              isoMsg)
-            == EXIT_SUCCESS,
-        "Error Setting DE 13");
-    check(c8583Check(handshake,
-              setDatum(isoMsg, CARD_ACCEPTOR_TERMINAL_IDENTIFICATION_41,
-                  (unsigned char*)handshake->tid, strlen(handshake->tid)),
-              isoMsg)
-            == EXIT_SUCCESS,
-        "Error Setting DE 41");
+    check(setDatum(isoMsg, MESSAGE_TYPE_INDICATOR_0, NETWORK_MANAGEMENT_MTI, 4)
+            == 0,
+        "%s", getMessage(isoMsg));
+    check(setDatum(isoMsg, PROCESSING_CODE_3, (unsigned char*)processingCode,
+              strlen(processingCode))
+            == 0,
+        "%s", getMessage(isoMsg));
+    check(setDatum(isoMsg, TRANSACTION_DATE_TIME_7,
+              (unsigned char*)dateTimeBuff, strlen(dateTimeBuff))
+            == 0,
+        "%s", getMessage(isoMsg));
+    check(setDatum(isoMsg, SYSTEM_TRACE_AUDIT_NUMBER_11,
+              (unsigned char*)timeBuff, strlen(timeBuff))
+            == 0,
+        "%s", getMessage(isoMsg));
+    check(setDatum(isoMsg, LOCAL_TRANSACTION_TIME_12, (unsigned char*)timeBuff,
+              strlen(timeBuff))
+            == 0,
+        "%s", getMessage(isoMsg));
+    check(setDatum(isoMsg, LOCAL_TRANSACTION_DATE_13, (unsigned char*)dateBuff,
+              strlen(dateBuff))
+            == 0,
+        "%s", getMessage(isoMsg));
+    check(setDatum(isoMsg, CARD_ACCEPTOR_TERMINAL_IDENTIFICATION_41,
+              (unsigned char*)handshake->tid, strlen(handshake->tid))
+            == 0,
+        "%s", getMessage(isoMsg));
     if (buildDE62(de62Buf, sizeof(de62Buf), handshake, networkManagementType)
         == EXIT_SUCCESS) {
-        check(c8583Check(handshake,
-                  setDatum(isoMsg, RESERVED_PRIVATE_62, (unsigned char*)de62Buf,
-                      strlen(de62Buf)),
-                  isoMsg)
-                == EXIT_SUCCESS,
-            "Error Setting DE 62");
+        check(setDatum(isoMsg, RESERVED_PRIVATE_62, (unsigned char*)de62Buf,
+                  strlen(de62Buf))
+                == 0,
+            "%s", getMessage(isoMsg));
         useMac = 1;
     }
 
@@ -279,36 +250,39 @@ error:
     return ret;
 }
 
-static int getLength(char* line, int nCopy)
+static int getLength(char* line, int width)
 {
     int ret = 0;
-    int len = strlen(line);
+    size_t len = strlen(line);
 
-    if (len && (nCopy < len)) {
+    if (len && (width < len)) {
         char value[23] = { '\0' };
         char buffer[0x1000] = { '\0' };
 
-        strncpy(value, line, nCopy);
-        sprintf(buffer, "%s", &line[nCopy]);
-        memset(line, '\0', strlen(line));
-        sprintf(line, "%s", buffer);
+        strncpy(value, line, width);
+        snprintf(buffer, sizeof(buffer), "%s", &line[width]);
+        memset(line, '\0', len);
+        snprintf(line, len, "%s", buffer);
+
         ret = atoi(value);
     }
 
     return ret;
 }
 
-static int getValue(char* line, char* value, int nCopy)
+static int getValue(char* line, char* value, int width)
 {
-    int len = strlen(line);
+    size_t len = strlen(line);
 
-    if (len && nCopy <= len) {
+    if (len && width <= len) {
         char buffer[10000] = { '\0' };
-        sprintf(buffer, "%s", &line[nCopy]);
-        strncpy(value, line, nCopy);
-        memset(line, '\0', strlen(line));
-        sprintf(line, "%s", buffer);
-        return nCopy;
+
+        snprintf(buffer, sizeof(buffer), "%s", &line[width]);
+        strncpy(value, line, width);
+        memset(line, '\0', len);
+        snprintf(line, len, "%s", buffer);
+
+        return width;
     }
 
     return 0;
@@ -316,62 +290,56 @@ static int getValue(char* line, char* value, int nCopy)
 
 static short parseDE62(Handshake_t* handshake, const char* de62, const int size)
 {
-    int tagLen, valueWidth;
-    char current[0x512] = { '\0' };
-    int processed = 0;
+    const int TAG_WIDTH = 2;
+    const int LEN_WIDTH = 3;
+    char buffer[0x512] = { '\0' };
+    int result = 0;
 
-    sprintf(current, "%s", de62);
-
-    tagLen = 2;
-    valueWidth = 3;
+    sprintf(buffer, "%s", de62);
 
     while (1) {
         char nextTag[3] = { '\0' };
-        int result = 0;
-        getValue(current, nextTag, tagLen);
 
-        if (!atoi(nextTag) || processed >= size)
+        if (!getValue(buffer, nextTag, TAG_WIDTH) || result >= size)
             break;
 
         if (strcmp(nextTag, "02") == 0) {
-            result = getValue(current,
+            result += getValue(buffer,
                 handshake->networkManagementResponse.parameters
                     .serverDateAndTime,
-                getLength(current, valueWidth));
+                getLength(buffer, LEN_WIDTH));
         } else if (strcmp(nextTag, "03") == 0) {
-            result = getValue(current,
+            result += getValue(buffer,
                 handshake->networkManagementResponse.parameters.cardAcceptorID,
-                getLength(current, valueWidth));
+                getLength(buffer, LEN_WIDTH));
         } else if (strcmp(nextTag, "04") == 0) {
-            result = getValue(current,
+            result += getValue(buffer,
                 handshake->networkManagementResponse.parameters.timeout,
-                getLength(current, valueWidth));
+                getLength(buffer, LEN_WIDTH));
         } else if (strcmp(nextTag, "05") == 0) {
-            result = getValue(current,
+            result += getValue(buffer,
                 handshake->networkManagementResponse.parameters.currencyCode,
-                getLength(current, valueWidth));
+                getLength(buffer, LEN_WIDTH));
         } else if (strcmp(nextTag, "06") == 0) {
-            result = getValue(current,
+            result += getValue(buffer,
                 handshake->networkManagementResponse.parameters.countryCode,
-                getLength(current, valueWidth));
+                getLength(buffer, LEN_WIDTH));
         } else if (strcmp(nextTag, "07") == 0) {
-            result = getValue(current,
+            result += getValue(buffer,
                 handshake->networkManagementResponse.parameters.callHomeTime,
-                getLength(current, valueWidth));
+                getLength(buffer, LEN_WIDTH));
         } else if (strcmp(nextTag, "08") == 0) {
-            result = getValue(current,
+            result += getValue(buffer,
                 handshake->networkManagementResponse.parameters
                     .merchantCategoryCode,
-                getLength(current, valueWidth));
+                getLength(buffer, LEN_WIDTH));
         } else if (strcmp(nextTag, "52") == 0) {
-            result = getValue(current,
+            result += getValue(buffer,
                 handshake->networkManagementResponse.parameters
                     .merchantNameAndLocation,
-                getLength(current, valueWidth));
+                getLength(buffer, LEN_WIDTH));
         }
-
-        if (result)
-            processed += result;
+        result += (TAG_WIDTH + LEN_WIDTH);
     }
 
     return 0;
@@ -422,25 +390,16 @@ static short parseGetNetworkDataResponseHelper(
 {
     short ret = EXIT_FAILURE;
 
-    check(c8583Check(handshake,
-              unpackData(isoMsg, &responseBuf[2],
-                  (responseBuf[0] << 8) + responseBuf[1])
-                  == 0,
-              isoMsg)
-            == EXIT_SUCCESS,
-        "Error Unpacking Data");
+    check(unpackData(
+              isoMsg, &responseBuf[2], (responseBuf[0] << 8) + responseBuf[1]),
+        "%s", getMessage(isoMsg));
 
     logIsoMsg(isoMsg, stderr);
 
-    check(c8583Check(handshake,
-              getDatum(isoMsg, RESPONSE_CODE_39,
-                  (unsigned char*)
-                      handshake->networkManagementResponse.responseCode,
-                  3)
-                  == 0,
-              isoMsg)
-            == EXIT_SUCCESS,
-        "Error Getting DE 39 - Response Code");
+    check(getDatum(isoMsg, RESPONSE_CODE_39,
+              (unsigned char*)handshake->networkManagementResponse.responseCode,
+              3),
+        "%s", getMessage(isoMsg));
 
     check(isApprovedResponse(handshake->networkManagementResponse.responseCode),
         "Not Arroved Response");
@@ -456,23 +415,19 @@ static short parseGetKeyResponse(
     short ret = EXIT_FAILURE;
     IsoMsg isoMsg = createIso8583();
     unsigned char de53Buff[97] = { '\0' };
-    size_t keySize = sizeof(key->key) - 1;
+    const short KEY_SIZE = 32;
+    const short KCV_SIZE = 6;
 
     check(parseGetNetworkDataResponseHelper(handshake, isoMsg, responseBuf)
             == EXIT_SUCCESS,
         "Parsing Error");
 
-    check(c8583Check(handshake,
-              getDatum(isoMsg, SECURITY_RELATED_CONTROL_INFORMATION_53,
-                  de53Buff, sizeof(de53Buff))
-                  == 0,
-              isoMsg)
-            == EXIT_SUCCESS,
-        "Error Getting DE 53");
+    check(getDatum(isoMsg, SECURITY_RELATED_CONTROL_INFORMATION_53, de53Buff,
+              sizeof(de53Buff)),
+        "%s", getMessage(isoMsg));
 
-    rightTrim((char*)de53Buff, '0');
-    memcpy(key->key, de53Buff, keySize);
-    memcpy(key->kcv, &de53Buff[keySize], strlen((char*)de53Buff) - keySize);
+    memcpy(key->key, de53Buff, KEY_SIZE);
+    memcpy(key->kcv, &de53Buff[KEY_SIZE], KCV_SIZE);
 
     ret = EXIT_SUCCESS;
 error:
@@ -492,13 +447,8 @@ static short parseGetNetworkDataResponse(Handshake_t* handshake,
         "Parsing Error");
 
     if (networkManagementType == NETWORK_MANAGEMENT_PARAMETER_DOWNLOAD) {
-        check(c8583Check(handshake,
-                  getDatum(
-                      isoMsg, RESERVED_PRIVATE_62, de62Buff, sizeof(de62Buff))
-                      == 0,
-                  isoMsg)
-                == EXIT_SUCCESS,
-            "Error Getting DE 62");
+        check(getDatum(isoMsg, RESERVED_PRIVATE_62, de62Buff, sizeof(de62Buff)),
+            "%s", getMessage(isoMsg));
 
         parseDE62(handshake, (char*)de62Buff, sizeof(de62Buff));
     }
@@ -517,7 +467,7 @@ static short validateKey(Handshake_t* handshake, Key* key,
 
     getDecryptionKey(
         handshake, networkManagementType, decryptionKey, sizeof(decryptionKey));
-    if(!decryptionKey[0]) {
+    if (!decryptionKey[0]) {
         log_err("Error getting decryption key");
         return EXIT_FAILURE;
     }
