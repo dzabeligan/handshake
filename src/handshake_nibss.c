@@ -11,12 +11,6 @@
 #include <string.h>
 #include <time.h>
 
-#include "../c8583/C8583.h"
-#include "../c8583/FieldNames.h"
-#include "../dbg.h"
-#include "../des/des.h"
-#include "../platform/utils.h"
-
 #include "handshake_internals.h"
 
 typedef enum {

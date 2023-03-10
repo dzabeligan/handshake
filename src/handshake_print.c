@@ -8,9 +8,7 @@
  * @copyright Copyright (c) 2023
  *
  */
-#include "../dbg.h"
-
-#include "../inc/handshake.h"
+#include "handshake_internals.h"
 
 /**
  * @brief Terminal App Type to string

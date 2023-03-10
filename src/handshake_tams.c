@@ -8,9 +8,6 @@
  * @copyright Copyright (c) 2023
  *
  */
-#include "../dbg.h"
-#include "../platform/utils.h"
-
 #include "handshake_internals.h"
 
 static short getTamsHash(char* hash, const char* data, const char* key)

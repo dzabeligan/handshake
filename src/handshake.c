@@ -10,8 +10,6 @@
  */
 #include <stdio.h>
 
-#include "../dbg.h"
-
 #include "handshake_internals.h"
 
 static short checkMapDeviceData(Handshake_t* handshake)

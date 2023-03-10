@@ -15,9 +15,13 @@
 extern "C" {
 #endif
 
+#include "../c8583/C8583.h"
+#include "../c8583/FieldNames.h"
+#include "../dbg.h"
+#include "../des/des.h"
 #include "../ezxml/ezxml.h"
-
 #include "../inc/handshake.h"
+#include "../platform/utils.h"
 
 /**
  * @brief Function pointer for Network Management operations

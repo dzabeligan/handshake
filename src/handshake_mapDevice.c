@@ -11,9 +11,6 @@
 #include <ctype.h>
 #include <stdio.h>
 
-#include "../dbg.h"
-#include "../platform/utils.h"
-
 #include "handshake_internals.h"
 
 typedef enum { STATUS_READY, STATUS_NOT_READY } pos_status;
