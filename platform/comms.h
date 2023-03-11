@@ -18,11 +18,11 @@ typedef int (*ComSentinel)(
  *
  */
 typedef int (*ComSendReceive)(unsigned char* response, const size_t rSize,
-    const unsigned char* request, const size_t len, const char* ip,
+    const unsigned char* request, const size_t len, const char* url,
     const int port, const ComSentinel recevSentinel, const char* endTag);
 
 int comSendReceive(unsigned char* response, const size_t rSize,
-    const unsigned char* request, const size_t len, const char* ip,
+    const unsigned char* request, const size_t len, const char* url,
     const int port, const ComSentinel recevSentinel, const char* endTag);
 
 #ifdef __cplusplus

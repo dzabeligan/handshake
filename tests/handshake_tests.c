@@ -76,7 +76,7 @@ const char* testHandshakeInit_mapTidTrue_dataNotSet()
     handshake.platform = PLATFORM_NIBSS;
     handshake.mapDevice = HANDSHAKE_MAP_DEVICE_TRUE;
     strcpy(handshake.tid, "");
-    strcpy(handshake.mapDeviceHost.hostUrl, "197.253.19.75");
+    strcpy(handshake.mapDeviceHost.hostUrl, "basehuge.itexapp.com");
     handshake.mapDeviceHost.port = 443;
 
     Handshake(&handshake);
@@ -110,7 +110,7 @@ const char* test_HandshakeNibssAllMapDeviceTrue()
     strcpy(handshake.simInfo.imsi, "621301234567890");
     handshake.simInfo.simType = SIM_TYPE_PUBLIC;
 
-    strcpy(handshake.mapDeviceHost.hostUrl, "197.253.19.75");
+    strcpy(handshake.mapDeviceHost.hostUrl, "basehuge.itexapp.com");
     handshake.mapDeviceHost.port = 443;
 
     Handshake(&handshake);
@@ -147,10 +147,10 @@ const char* test_HandshakeNibssAllMapDeviceFalse()
     strcpy(handshake.simInfo.imsi, "621301234567890");
     handshake.simInfo.simType = SIM_TYPE_PUBLIC;
 
-    strcpy(handshake.handshakeHost.hostUrl, "197.253.19.75");
+    strcpy(handshake.handshakeHost.hostUrl, "basehuge.itexapp.com");
     handshake.handshakeHost.port = 5003;
     // needed if call home host is different from handshake host
-    strcpy(handshake.callHomeHost.hostUrl, "197.253.19.75");
+    strcpy(handshake.callHomeHost.hostUrl, "basehuge.itexapp.com");
     handshake.callHomeHost.port = 7003;
 
     Handshake(&handshake);
@@ -183,7 +183,7 @@ const char* test_HandshakeNibssMasterMapDeviceTrue()
     strcpy(handshake.simInfo.imsi, "621301234567890");
     handshake.simInfo.simType = SIM_TYPE_PUBLIC;
 
-    strcpy(handshake.mapDeviceHost.hostUrl, "197.253.19.75");
+    strcpy(handshake.mapDeviceHost.hostUrl, "basehuge.itexapp.com");
     handshake.mapDeviceHost.port = 443;
 
     Handshake(&handshake);
@@ -210,7 +210,7 @@ const char* test_HandshakeNibssMasterMapDeviceFalse()
 
     strcpy(handshake.tid, "2033GP24");
 
-    strcpy(handshake.handshakeHost.hostUrl, "197.253.19.75");
+    strcpy(handshake.handshakeHost.hostUrl, "basehuge.itexapp.com");
     handshake.handshakeHost.port = 5003;
 
     Handshake(&handshake);
@@ -249,7 +249,7 @@ const char* test_HandshakeNibssSessionMapDeviceTrue()
     strcpy(handshake.simInfo.imsi, "621301234567890");
     handshake.simInfo.simType = SIM_TYPE_PUBLIC;
 
-    strcpy(handshake.mapDeviceHost.hostUrl, "197.253.19.75");
+    strcpy(handshake.mapDeviceHost.hostUrl, "basehuge.itexapp.com");
     handshake.mapDeviceHost.port = 443;
 
     Handshake(&handshake);
@@ -280,7 +280,7 @@ const char* test_HandshakeNibssSessionMapDeviceFalse()
     strcpy((char*)handshake.networkManagementResponse.master.key,
         (char*)g_handshake.networkManagementResponse.master.key);
 
-    strcpy(handshake.handshakeHost.hostUrl, "197.253.19.75");
+    strcpy(handshake.handshakeHost.hostUrl, "basehuge.itexapp.com");
     handshake.handshakeHost.port = 5003;
 
     Handshake(&handshake);
@@ -319,7 +319,7 @@ const char* test_HandshakeNibssPinMapDeviceTrue()
     strcpy(handshake.simInfo.imsi, "621301234567890");
     handshake.simInfo.simType = SIM_TYPE_PUBLIC;
 
-    strcpy(handshake.mapDeviceHost.hostUrl, "197.253.19.75");
+    strcpy(handshake.mapDeviceHost.hostUrl, "basehuge.itexapp.com");
     handshake.mapDeviceHost.port = 443;
 
     Handshake(&handshake);
@@ -351,7 +351,7 @@ const char* test_HandshakeNibssPinMapDeviceFalse()
     strcpy((char*)handshake.networkManagementResponse.master.key,
         (char*)g_handshake.networkManagementResponse.master.key);
 
-    strcpy(handshake.handshakeHost.hostUrl, "197.253.19.75");
+    strcpy(handshake.handshakeHost.hostUrl, "basehuge.itexapp.com");
     handshake.handshakeHost.port = 5003;
 
     Handshake(&handshake);
@@ -392,7 +392,7 @@ const char* test_HandshakeNibssParametersMapDeviceTrue()
     strcpy(handshake.simInfo.imsi, "621301234567890");
     handshake.simInfo.simType = SIM_TYPE_PUBLIC;
 
-    strcpy(handshake.mapDeviceHost.hostUrl, "197.253.19.75");
+    strcpy(handshake.mapDeviceHost.hostUrl, "basehuge.itexapp.com");
     handshake.mapDeviceHost.port = 443;
 
     Handshake(&handshake);
@@ -437,10 +437,10 @@ const char* test_HandshakeNibssParametersMapDeviceFalse()
     strcpy(handshake.simInfo.imsi, "621301234567890");
     handshake.simInfo.simType = SIM_TYPE_PUBLIC;
 
-    strcpy(handshake.handshakeHost.hostUrl, "197.253.19.75");
+    strcpy(handshake.handshakeHost.hostUrl, "basehuge.itexapp.com");
     handshake.handshakeHost.port = 5003;
     // needed if call home host is different from handshake host
-    strcpy(handshake.callHomeHost.hostUrl, "197.253.19.75");
+    strcpy(handshake.callHomeHost.hostUrl, "basehuge.itexapp.com");
     handshake.callHomeHost.port = 7003;
 
     Handshake(&handshake);
@@ -482,7 +482,7 @@ const char* test_HandshakeNibssCallHomeMapDeviceTrue()
     strcpy(handshake.simInfo.imsi, "621301234567890");
     handshake.simInfo.simType = SIM_TYPE_PUBLIC;
 
-    strcpy(handshake.mapDeviceHost.hostUrl, "197.253.19.75");
+    strcpy(handshake.mapDeviceHost.hostUrl, "basehuge.itexapp.com");
     handshake.mapDeviceHost.port = 443;
 
     Handshake(&handshake);
@@ -527,10 +527,10 @@ const char* test_HandshakeNibssCallHomeMapDeviceFalse()
     strcpy(handshake.simInfo.imsi, "621301234567890");
     handshake.simInfo.simType = SIM_TYPE_PUBLIC;
 
-    strcpy(handshake.handshakeHost.hostUrl, "197.253.19.75");
+    strcpy(handshake.handshakeHost.hostUrl, "basehuge.itexapp.com");
     handshake.handshakeHost.port = 5003;
     // needed if call home host is different from handshake host
-    strcpy(handshake.callHomeHost.hostUrl, "197.253.19.75");
+    strcpy(handshake.callHomeHost.hostUrl, "basehuge.itexapp.com");
     handshake.callHomeHost.port = 7003;
 
     Handshake(&handshake);
@@ -564,10 +564,10 @@ const char* test_HandshakeTamsAllMapDeviceTrue()
     strcpy(handshake.deviceInfo.model, "LaptopPort");
     strcpy(handshake.deviceInfo.posUid, "346228245");
 
-    strcpy(handshake.handshakeHost.hostUrl, "197.253.19.75");
+    strcpy(handshake.handshakeHost.hostUrl, "basehuge.itexapp.com");
     handshake.handshakeHost.port = 443;
 
-    strcpy(handshake.mapDeviceHost.hostUrl, "197.253.19.75");
+    strcpy(handshake.mapDeviceHost.hostUrl, "basehuge.itexapp.com");
     handshake.mapDeviceHost.port = 443;
 
     Handshake(&handshake);
@@ -595,7 +595,7 @@ const char* test_HandshakeTamsAllMapDeviceFalse()
     strcpy(handshake.deviceInfo.model, "LaptopPort");
     strcpy(handshake.deviceInfo.posUid, "346228245");
 
-    strcpy(handshake.handshakeHost.hostUrl, "197.253.19.75");
+    strcpy(handshake.handshakeHost.hostUrl, "basehuge.itexapp.com");
     handshake.handshakeHost.port = 443;
 
     Handshake(&handshake);
@@ -623,7 +623,7 @@ const char* test_HandshakeTamsMasterMapDeviceFalse()
     strcpy(handshake.deviceInfo.model, "LaptopPort");
     strcpy(handshake.deviceInfo.posUid, "346228245");
 
-    strcpy(handshake.handshakeHost.hostUrl, "197.253.19.75");
+    strcpy(handshake.handshakeHost.hostUrl, "basehuge.itexapp.com");
     handshake.handshakeHost.port = 443;
 
     Handshake(&handshake);
@@ -657,7 +657,7 @@ const char* test_HandshakeTamsSessionMapDeviceFalse()
     strcpy(handshake.deviceInfo.model, "LaptopPort");
     strcpy(handshake.deviceInfo.posUid, "346228245");
 
-    strcpy(handshake.handshakeHost.hostUrl, "197.253.19.75");
+    strcpy(handshake.handshakeHost.hostUrl, "basehuge.itexapp.com");
     handshake.handshakeHost.port = 443;
 
     Handshake(&handshake);
@@ -691,7 +691,7 @@ const char* test_HandshakeTamsParametersMapDeviceFalse()
     strcpy(handshake.deviceInfo.model, "LaptopPort");
     strcpy(handshake.deviceInfo.posUid, "346228245");
 
-    strcpy(handshake.handshakeHost.hostUrl, "197.253.19.75");
+    strcpy(handshake.handshakeHost.hostUrl, "basehuge.itexapp.com");
     handshake.handshakeHost.port = 443;
 
     Handshake(&handshake);
@@ -723,7 +723,7 @@ const char* test_HandshakeTamsEftTotalMapDeviceFalse()
     strcpy(handshake.deviceInfo.model, "LaptopPort");
     strcpy(handshake.deviceInfo.posUid, "346228245");
 
-    strcpy(handshake.handshakeHost.hostUrl, "197.253.19.75");
+    strcpy(handshake.handshakeHost.hostUrl, "basehuge.itexapp.com");
     handshake.handshakeHost.port = 443;
 
     Handshake(&handshake);
