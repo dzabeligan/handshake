@@ -31,8 +31,8 @@
 #define DES_ENCRYPT 1
 #define DES_DECRYPT 0
 
-#define ERR_DES_INVALID_INPUT_LENGTH                                           \
-    -0x0032 /**< The data input has an invalid length. */
+#define ERR_DES_INVALID_INPUT_LENGTH \
+  -0x0032 /**< The data input has an invalid length. */
 
 #define DES_KEY_SIZE 8
 
@@ -47,14 +47,14 @@ extern "C" {
  * \brief          DES context structure
  */
 typedef struct {
-    uint32_t sk[32]; /*!<  DES subkeys       */
+  uint32_t sk[32]; /*!<  DES subkeys       */
 } des_context;
 
 /**
  * \brief          Triple-DES context structure
  */
 typedef struct {
-    uint32_t sk[96]; /*!<  3DES subkeys      */
+  uint32_t sk[96]; /*!<  3DES subkeys      */
 } des3_context;
 
 /**
@@ -144,8 +144,8 @@ int des_setkey_dec(des_context* ctx, const unsigned char key[DES_KEY_SIZE]);
  *
  * \return         0
  */
-int des3_set2key_enc(
-    des3_context* ctx, const unsigned char key[DES_KEY_SIZE * 2]);
+int des3_set2key_enc(des3_context* ctx,
+                     const unsigned char key[DES_KEY_SIZE * 2]);
 
 /**
  * \brief          Triple-DES key schedule (112-bit, decryption)
@@ -155,8 +155,8 @@ int des3_set2key_enc(
  *
  * \return         0
  */
-int des3_set2key_dec(
-    des3_context* ctx, const unsigned char key[DES_KEY_SIZE * 2]);
+int des3_set2key_dec(des3_context* ctx,
+                     const unsigned char key[DES_KEY_SIZE * 2]);
 
 /**
  * \brief          Triple-DES key schedule (168-bit, encryption)
@@ -166,8 +166,8 @@ int des3_set2key_dec(
  *
  * \return         0
  */
-int des3_set3key_enc(
-    des3_context* ctx, const unsigned char key[DES_KEY_SIZE * 3]);
+int des3_set3key_enc(des3_context* ctx,
+                     const unsigned char key[DES_KEY_SIZE * 3]);
 
 /**
  * \brief          Triple-DES key schedule (168-bit, decryption)
@@ -177,8 +177,8 @@ int des3_set3key_enc(
  *
  * \return         0
  */
-int des3_set3key_dec(
-    des3_context* ctx, const unsigned char key[DES_KEY_SIZE * 3]);
+int des3_set3key_dec(des3_context* ctx,
+                     const unsigned char key[DES_KEY_SIZE * 3]);
 
 /**
  * \brief          DES-ECB block encryption/decryption
@@ -189,8 +189,8 @@ int des3_set3key_dec(
  *
  * \return         0 if successful
  */
-int des_crypt_ecb(
-    des_context* ctx, const unsigned char input[8], unsigned char output[8]);
+int des_crypt_ecb(des_context* ctx, const unsigned char input[8],
+                  unsigned char output[8]);
 
 /**
  * \brief          DES-CBC buffer encryption/decryption
@@ -211,7 +211,8 @@ int des_crypt_ecb(
  * \param output   buffer holding the output data
  */
 int des_crypt_cbc(des_context* ctx, int mode, size_t length,
-    unsigned char iv[8], const unsigned char* input, unsigned char* output);
+                  unsigned char iv[8], const unsigned char* input,
+                  unsigned char* output);
 
 /**
  * \brief          3DES-ECB block encryption/decryption
@@ -222,8 +223,8 @@ int des_crypt_cbc(des_context* ctx, int mode, size_t length,
  *
  * \return         0 if successful
  */
-int des3_crypt_ecb(
-    des3_context* ctx, const unsigned char input[8], unsigned char output[8]);
+int des3_crypt_ecb(des3_context* ctx, const unsigned char input[8],
+                   unsigned char output[8]);
 
 /**
  * \brief          3DES-CBC buffer encryption/decryption
@@ -246,7 +247,8 @@ int des3_crypt_ecb(
  * \return         0 if successful, or ERR_DES_INVALID_INPUT_LENGTH
  */
 int des3_crypt_cbc(des3_context* ctx, int mode, size_t length,
-    unsigned char iv[8], const unsigned char* input, unsigned char* output);
+                   unsigned char iv[8], const unsigned char* input,
+                   unsigned char* output);
 
 /**
  * \brief          Internal function for key expansion.
@@ -269,7 +271,7 @@ void des_setkey(uint32_t SK[32], const unsigned char key[DES_KEY_SIZE]);
  * \return         0 if successful, or ERR_DES_INVALID_INPUT_LENGTH
  */
 unsigned int des_ecb_encrypt(unsigned char* pout, unsigned char* pdata,
-    unsigned int nlen, unsigned char* pkey);
+                             unsigned int nlen, unsigned char* pkey);
 /**
  * \brief          DES-CBC buffer decryption
  *
@@ -281,7 +283,7 @@ unsigned int des_ecb_encrypt(unsigned char* pout, unsigned char* pdata,
  * \return         0 if successful, or ERR_DES_INVALID_INPUT_LENGTH
  */
 unsigned int des_ecb_decrypt(unsigned char* pout, unsigned char* pdata,
-    unsigned int nlen, unsigned char* pkey);
+                             unsigned int nlen, unsigned char* pkey);
 /**
  * \brief          DES-CBC buffer encryption
  *
@@ -294,7 +296,8 @@ unsigned int des_ecb_decrypt(unsigned char* pout, unsigned char* pdata,
  * \return         0 if successful, or ERR_DES_INVALID_INPUT_LENGTH
  */
 unsigned int des_cbc_encrypt(unsigned char* pout, unsigned char* pdata,
-    unsigned int nlen, unsigned char* pkey, unsigned char* piv);
+                             unsigned int nlen, unsigned char* pkey,
+                             unsigned char* piv);
 /**
  * \brief          DES-CBC buffer decryption
  *
@@ -307,7 +310,8 @@ unsigned int des_cbc_encrypt(unsigned char* pout, unsigned char* pdata,
  * \return         0 if successful, or ERR_DES_INVALID_INPUT_LENGTH
  */
 unsigned int des_cbc_decrypt(unsigned char* pout, unsigned char* pdata,
-    unsigned int nlen, unsigned char* pkey, unsigned char* piv);
+                             unsigned int nlen, unsigned char* pkey,
+                             unsigned char* piv);
 
 /**
  * \brief          3DES-ECB buffer encryption
@@ -321,7 +325,8 @@ unsigned int des_cbc_decrypt(unsigned char* pout, unsigned char* pdata,
  * \return         0 if successful, or ERR_DES_INVALID_INPUT_LENGTH
  */
 unsigned int des3_ecb_encrypt(unsigned char* pout, unsigned char* pdata,
-    unsigned int nlen, unsigned char* pkey, unsigned int klen);
+                              unsigned int nlen, unsigned char* pkey,
+                              unsigned int klen);
 /**
  * \brief          3DES-ECB buffer decryption
  *
@@ -334,7 +339,8 @@ unsigned int des3_ecb_encrypt(unsigned char* pout, unsigned char* pdata,
  * \return         0 if successful, or ERR_DES_INVALID_INPUT_LENGTH
  */
 unsigned int des3_ecb_decrypt(unsigned char* pout, unsigned char* pdata,
-    unsigned int nlen, unsigned char* pkey, unsigned int klen);
+                              unsigned int nlen, unsigned char* pkey,
+                              unsigned int klen);
 /**
  * \brief          3DES-CBC buffer encryption
  *
@@ -348,8 +354,8 @@ unsigned int des3_ecb_decrypt(unsigned char* pout, unsigned char* pdata,
  * \return         0 if successful, or ERR_DES_INVALID_INPUT_LENGTH
  */
 unsigned int des3_cbc_encrypt(unsigned char* pout, unsigned char* pdata,
-    unsigned int nlen, unsigned char* pkey, unsigned int klen,
-    unsigned char* piv);
+                              unsigned int nlen, unsigned char* pkey,
+                              unsigned int klen, unsigned char* piv);
 /**
  * \brief          3DES-CBC buffer decryption
  *
@@ -363,8 +369,8 @@ unsigned int des3_cbc_encrypt(unsigned char* pout, unsigned char* pdata,
  * \return         0 if successful, or ERR_DES_INVALID_INPUT_LENGTH
  */
 unsigned int des3_cbc_decrypt(unsigned char* pout, unsigned char* pdata,
-    unsigned int nlen, unsigned char* pkey, unsigned int klen,
-    unsigned char* piv);
+                              unsigned int nlen, unsigned char* pkey,
+                              unsigned int klen, unsigned char* piv);
 
 #ifdef __cplusplus
 }

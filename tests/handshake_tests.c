@@ -112,6 +112,7 @@ const char* test_HandshakeNibssAllMapDeviceTrue()
 
     strcpy(handshake.mapDeviceHost.hostUrl, "basehuge.itexapp.com");
     handshake.mapDeviceHost.port = 443;
+    handshake.mapDeviceHost.connectionType = CONNECTION_TYPE_SSL;
 
     Handshake(&handshake);
     mu_assert(handshake.error.code == ERROR_CODE_NO_ERROR, "%s",
@@ -149,9 +150,11 @@ const char* test_HandshakeNibssAllMapDeviceFalse()
 
     strcpy(handshake.handshakeHost.hostUrl, "basehuge.itexapp.com");
     handshake.handshakeHost.port = 5003;
+    handshake.handshakeHost.connectionType = CONNECTION_TYPE_SSL;
     // needed if call home host is different from handshake host
     strcpy(handshake.callHomeHost.hostUrl, "basehuge.itexapp.com");
     handshake.callHomeHost.port = 7003;
+    handshake.callHomeHost.connectionType = CONNECTION_TYPE_SSL;
 
     Handshake(&handshake);
     mu_assert(handshake.error.code == ERROR_CODE_NO_ERROR, "%s",
@@ -185,6 +188,7 @@ const char* test_HandshakeNibssMasterMapDeviceTrue()
 
     strcpy(handshake.mapDeviceHost.hostUrl, "basehuge.itexapp.com");
     handshake.mapDeviceHost.port = 443;
+    handshake.mapDeviceHost.connectionType = CONNECTION_TYPE_SSL;
 
     Handshake(&handshake);
     mu_assert(handshake.error.code == ERROR_CODE_NO_ERROR, "%s",
@@ -212,6 +216,7 @@ const char* test_HandshakeNibssMasterMapDeviceFalse()
 
     strcpy(handshake.handshakeHost.hostUrl, "basehuge.itexapp.com");
     handshake.handshakeHost.port = 5003;
+    handshake.handshakeHost.connectionType = CONNECTION_TYPE_SSL;
 
     Handshake(&handshake);
     mu_assert(handshake.error.code == ERROR_CODE_NO_ERROR, "%s",
@@ -251,6 +256,7 @@ const char* test_HandshakeNibssSessionMapDeviceTrue()
 
     strcpy(handshake.mapDeviceHost.hostUrl, "basehuge.itexapp.com");
     handshake.mapDeviceHost.port = 443;
+    handshake.mapDeviceHost.connectionType = CONNECTION_TYPE_SSL;
 
     Handshake(&handshake);
     mu_assert(handshake.error.code == ERROR_CODE_NO_ERROR, "%s",
@@ -282,6 +288,7 @@ const char* test_HandshakeNibssSessionMapDeviceFalse()
 
     strcpy(handshake.handshakeHost.hostUrl, "basehuge.itexapp.com");
     handshake.handshakeHost.port = 5003;
+    handshake.handshakeHost.connectionType = CONNECTION_TYPE_SSL;
 
     Handshake(&handshake);
     mu_assert(handshake.error.code == ERROR_CODE_NO_ERROR, "%s",
@@ -321,6 +328,7 @@ const char* test_HandshakeNibssPinMapDeviceTrue()
 
     strcpy(handshake.mapDeviceHost.hostUrl, "basehuge.itexapp.com");
     handshake.mapDeviceHost.port = 443;
+    handshake.mapDeviceHost.connectionType = CONNECTION_TYPE_SSL;
 
     Handshake(&handshake);
     mu_assert(handshake.error.code == ERROR_CODE_NO_ERROR, "%s",
@@ -353,6 +361,7 @@ const char* test_HandshakeNibssPinMapDeviceFalse()
 
     strcpy(handshake.handshakeHost.hostUrl, "basehuge.itexapp.com");
     handshake.handshakeHost.port = 5003;
+    handshake.handshakeHost.connectionType = CONNECTION_TYPE_SSL;
 
     Handshake(&handshake);
     mu_assert(handshake.error.code == ERROR_CODE_NO_ERROR, "%s",
@@ -394,6 +403,7 @@ const char* test_HandshakeNibssParametersMapDeviceTrue()
 
     strcpy(handshake.mapDeviceHost.hostUrl, "basehuge.itexapp.com");
     handshake.mapDeviceHost.port = 443;
+    handshake.mapDeviceHost.connectionType = CONNECTION_TYPE_SSL;
 
     Handshake(&handshake);
     mu_assert(handshake.error.code == ERROR_CODE_NO_ERROR, "%s",
@@ -439,9 +449,11 @@ const char* test_HandshakeNibssParametersMapDeviceFalse()
 
     strcpy(handshake.handshakeHost.hostUrl, "basehuge.itexapp.com");
     handshake.handshakeHost.port = 5003;
+    handshake.handshakeHost.connectionType = CONNECTION_TYPE_SSL;
     // needed if call home host is different from handshake host
     strcpy(handshake.callHomeHost.hostUrl, "basehuge.itexapp.com");
     handshake.callHomeHost.port = 7003;
+    handshake.callHomeHost.connectionType = CONNECTION_TYPE_SSL;
 
     Handshake(&handshake);
     mu_assert(handshake.error.code == ERROR_CODE_NO_ERROR, "%s",
@@ -484,6 +496,7 @@ const char* test_HandshakeNibssCallHomeMapDeviceTrue()
 
     strcpy(handshake.mapDeviceHost.hostUrl, "basehuge.itexapp.com");
     handshake.mapDeviceHost.port = 443;
+    handshake.mapDeviceHost.connectionType = CONNECTION_TYPE_SSL;
 
     Handshake(&handshake);
     mu_assert(handshake.error.code == ERROR_CODE_NO_ERROR, "%s",
@@ -529,9 +542,11 @@ const char* test_HandshakeNibssCallHomeMapDeviceFalse()
 
     strcpy(handshake.handshakeHost.hostUrl, "basehuge.itexapp.com");
     handshake.handshakeHost.port = 5003;
+    handshake.handshakeHost.connectionType = CONNECTION_TYPE_SSL;
     // needed if call home host is different from handshake host
     strcpy(handshake.callHomeHost.hostUrl, "basehuge.itexapp.com");
     handshake.callHomeHost.port = 7003;
+    handshake.callHomeHost.connectionType = CONNECTION_TYPE_SSL;
 
     Handshake(&handshake);
     mu_assert(handshake.error.code == ERROR_CODE_NO_ERROR, "%s",
@@ -566,9 +581,11 @@ const char* test_HandshakeTamsAllMapDeviceTrue()
 
     strcpy(handshake.handshakeHost.hostUrl, "basehuge.itexapp.com");
     handshake.handshakeHost.port = 443;
+    handshake.handshakeHost.connectionType = CONNECTION_TYPE_SSL;
 
     strcpy(handshake.mapDeviceHost.hostUrl, "basehuge.itexapp.com");
     handshake.mapDeviceHost.port = 443;
+    handshake.mapDeviceHost.connectionType = CONNECTION_TYPE_SSL;
 
     Handshake(&handshake);
     mu_assert(handshake.error.code == ERROR_CODE_NO_ERROR, "%s",
@@ -597,6 +614,7 @@ const char* test_HandshakeTamsAllMapDeviceFalse()
 
     strcpy(handshake.handshakeHost.hostUrl, "basehuge.itexapp.com");
     handshake.handshakeHost.port = 443;
+    handshake.handshakeHost.connectionType = CONNECTION_TYPE_SSL;
 
     Handshake(&handshake);
     mu_assert(handshake.error.code == ERROR_CODE_NO_ERROR, "%s",
@@ -625,6 +643,7 @@ const char* test_HandshakeTamsMasterMapDeviceFalse()
 
     strcpy(handshake.handshakeHost.hostUrl, "basehuge.itexapp.com");
     handshake.handshakeHost.port = 443;
+    handshake.handshakeHost.connectionType = CONNECTION_TYPE_SSL;
 
     Handshake(&handshake);
     mu_assert(handshake.error.code == ERROR_CODE_NO_ERROR, "%s",
@@ -659,6 +678,7 @@ const char* test_HandshakeTamsSessionMapDeviceFalse()
 
     strcpy(handshake.handshakeHost.hostUrl, "basehuge.itexapp.com");
     handshake.handshakeHost.port = 443;
+    handshake.handshakeHost.connectionType = CONNECTION_TYPE_SSL;
 
     Handshake(&handshake);
     mu_assert(handshake.error.code == ERROR_CODE_NO_ERROR, "%s",
@@ -693,6 +713,7 @@ const char* test_HandshakeTamsParametersMapDeviceFalse()
 
     strcpy(handshake.handshakeHost.hostUrl, "basehuge.itexapp.com");
     handshake.handshakeHost.port = 443;
+    handshake.handshakeHost.connectionType = CONNECTION_TYPE_SSL;
 
     Handshake(&handshake);
     mu_assert(handshake.error.code == ERROR_CODE_NO_ERROR, "%s",
@@ -725,6 +746,7 @@ const char* test_HandshakeTamsEftTotalMapDeviceFalse()
 
     strcpy(handshake.handshakeHost.hostUrl, "basehuge.itexapp.com");
     handshake.handshakeHost.port = 443;
+    handshake.handshakeHost.connectionType = CONNECTION_TYPE_SSL;
 
     Handshake(&handshake);
     mu_assert(handshake.error.code == ERROR_CODE_NO_ERROR, "%s",

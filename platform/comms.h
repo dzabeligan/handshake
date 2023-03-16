@@ -11,19 +11,33 @@ extern "C" {
 
 #include <stdlib.h>
 
-typedef int (*ComSentinel)(
-    unsigned char* packet, const int bytesRead, const char* endTag);
+/**
+ * @brief Server connection type
+ *
+ */
+typedef enum {
+  CONNECTION_TYPE_PLAIN,
+  CONNECTION_TYPE_SSL,
+} ConnectionType;
+
+typedef int (*ComSentinel)(unsigned char* packet, const int bytesRead,
+                           const char* endTag);
 /**
  * @brief Function pointer to send and receive data
  *
  */
 typedef int (*ComSendReceive)(unsigned char* response, const size_t rSize,
-    const unsigned char* request, const size_t len, const char* url,
-    const int port, const ComSentinel recevSentinel, const char* endTag);
+                              const unsigned char* request, const size_t len,
+                              const char* url, const int port,
+                              ConnectionType connectionType,
+                              const ComSentinel recevSentinel,
+                              const char* endTag);
 
 int comSendReceive(unsigned char* response, const size_t rSize,
-    const unsigned char* request, const size_t len, const char* url,
-    const int port, const ComSentinel recevSentinel, const char* endTag);
+                   const unsigned char* request, const size_t len,
+                   const char* url, const int port,
+                   ConnectionType connectionType,
+                   const ComSentinel recevSentinel, const char* endTag);
 
 #ifdef __cplusplus
 }

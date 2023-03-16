@@ -22,44 +22,44 @@ extern "C" {
 #define USE_BCD_LEN_FOR_ASC
 
 struct IsoData {
-    unsigned char* datum;
-    unsigned int size;
-    unsigned int jumper;
-    char message[65];
+  unsigned char* datum;
+  unsigned int size;
+  unsigned int jumper;
+  char message[65];
 };
 
 enum FieldType {
-    FIXED_LENGTH,
-    LL_VAR,
-    LLL_VAR,
-    LLLL_VAR,
-    LLLLL_VAR,
-    LLLLLL_VAR,
+  FIXED_LENGTH,
+  LL_VAR,
+  LLL_VAR,
+  LLLL_VAR,
+  LLLLL_VAR,
+  LLLLLL_VAR,
 };
 
 enum FieldAttribute {
-    ALPHANUMERIC,
-    ALPHANUMERIC_SPECIAL,
-    BINARY,
-    HEX_NUMERICS, // x+n
-    NUMERIC,
-    NUMERIC_SPECIAL, // ns
-    Z,
+  ALPHANUMERIC,
+  ALPHANUMERIC_SPECIAL,
+  BINARY,
+  HEX_NUMERICS,  // x+n
+  NUMERIC,
+  NUMERIC_SPECIAL,  // ns
+  Z,
 };
 
 enum EncodingType {
-    ASCII_ENCODING,
-    BCD_ENCODING,
-    BINARY_ENCODING,
+  ASCII_ENCODING,
+  BCD_ENCODING,
+  BINARY_ENCODING,
 };
 
 struct C8583Config {
-    enum Field field;
-    enum FieldType type;
-    enum FieldAttribute attribute;
-    enum EncodingType inputEncoding;
-    enum EncodingType outputEncoding;
-    unsigned int length;
+  enum Field field;
+  enum FieldType type;
+  enum FieldAttribute attribute;
+  enum EncodingType inputEncoding;
+  enum EncodingType outputEncoding;
+  unsigned int length;
 };
 
 short isFieldInRange(const int field);
@@ -68,9 +68,10 @@ short isAscToBcd(const struct C8583Config* config);
 void getC8583Config(struct C8583Config* config, const short field);
 short getConfigSize(void);
 struct IsoData* encodeDatum(const unsigned char* datum, const unsigned int size,
-    const struct C8583Config* config, char* message);
+                            const struct C8583Config* config, char* message);
 struct IsoData* decodeDatum(const unsigned char* packet,
-    const unsigned int size, const struct C8583Config* config, char* message);
+                            const unsigned int size,
+                            const struct C8583Config* config, char* message);
 void freeIsoData(struct IsoData* isoData);
 
 #ifdef __cplusplus

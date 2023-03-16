@@ -3,9 +3,9 @@
  */
 
 typedef struct __rc4_state {
-    unsigned char i;
-    unsigned char n;
-    unsigned char s[256];
+  unsigned char i;
+  unsigned char n;
+  unsigned char s[256];
 } rc4_state;
 
 /**

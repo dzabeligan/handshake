@@ -40,12 +40,12 @@ typedef short (*GetNetworkManagementData)(Handshake_t* handshake);
  *
  */
 typedef struct Handshake_Internals {
-    GetNetworkManagementData getMasterKey;
-    GetNetworkManagementData getSessionKey;
-    GetNetworkManagementData getPinKey;
-    GetNetworkManagementData getParameters;
-    GetNetworkManagementData doCallHome;
-    GetNetworkManagementData getEftTotal;
+  GetNetworkManagementData getMasterKey;
+  GetNetworkManagementData getSessionKey;
+  GetNetworkManagementData getPinKey;
+  GetNetworkManagementData getParameters;
+  GetNetworkManagementData doCallHome;
+  GetNetworkManagementData getEftTotal;
 } Handshake_Internals;
 
 void bindNibss(Handshake_Internals* handshakeInternals);

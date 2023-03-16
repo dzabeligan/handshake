@@ -14,9 +14,9 @@ extern "C" {
 #endif
 
 typedef struct {
-    uint32 total[2];
-    uint32 state[8];
-    uint8 buffer[64];
+  uint32 total[2];
+  uint32 state[8];
+  uint8 buffer[64];
 } sha256_context;
 
 void sha256_starts(sha256_context* ctx);

@@ -24,11 +24,11 @@ extern "C" {
  *
  */
 typedef enum {
-    PTAD_KEY_UNKNOWN,
-    PTAD_KEY_POSVAS,
-    PTAD_KEY_EPMS,
-    PTAD_KEY_NIBSS,
-    PTAD_KEY_TAMS,
+  PTAD_KEY_UNKNOWN,
+  PTAD_KEY_POSVAS,
+  PTAD_KEY_EPMS,
+  PTAD_KEY_NIBSS,
+  PTAD_KEY_TAMS,
 } PtadKey;
 
 /**
@@ -36,8 +36,8 @@ typedef enum {
  *
  */
 typedef enum {
-    HANDSHAKE_MAP_DEVICE_FALSE,
-    HANDSHAKE_MAP_DEVICE_TRUE,
+  HANDSHAKE_MAP_DEVICE_FALSE,
+  HANDSHAKE_MAP_DEVICE_TRUE,
 } HandshakeMapDevice;
 
 /**
@@ -45,27 +45,18 @@ typedef enum {
  *
  */
 typedef enum {
-    PLATFORM_NIBSS,
-    PLATFORM_TAMS,
+  PLATFORM_NIBSS,
+  PLATFORM_TAMS,
 } Platform;
-
-/**
- * @brief Server connection type
- *
- */
-typedef enum {
-    CONNECTION_TYPE_PLAIN,
-    CONNECTION_TYPE_SSL,
-} ConnectionType;
 
 /**
  * @brief Middleware server type
  *
  */
 typedef enum {
-    MIDDLEWARE_SERVER_TYPE_UNKNOWN,
-    MIDDLEWARE_SERVER_TYPE_POSVAS,
-    MIDDLEWARE_SERVER_TYPE_EPMS,
+  MIDDLEWARE_SERVER_TYPE_UNKNOWN,
+  MIDDLEWARE_SERVER_TYPE_POSVAS,
+  MIDDLEWARE_SERVER_TYPE_EPMS,
 } MiddlewareServerType;
 
 /**
@@ -73,10 +64,10 @@ typedef enum {
  *
  */
 typedef enum {
-    TERMINAL_APP_TYPE_UNKNOWN,
-    TERMINAL_APP_TYPE_MERCHANT,
-    TERMINAL_APP_TYPE_AGENT,
-    TERMINAL_APP_TYPE_CONVERTED,
+  TERMINAL_APP_TYPE_UNKNOWN,
+  TERMINAL_APP_TYPE_MERCHANT,
+  TERMINAL_APP_TYPE_AGENT,
+  TERMINAL_APP_TYPE_CONVERTED,
 } TerminalAppType;
 
 /**
@@ -84,11 +75,11 @@ typedef enum {
  *
  */
 typedef enum {
-    ERROR_CODE_NO_ERROR,
-    ERROR_CODE_HANDSHAKE_INIT_ERROR,
-    ERROR_CODE_HANDSHAKE_MAPTID_ERROR,
-    ERROR_CODE_HANDSHAKE_RUN_ERROR,
-    ERROR_CODE_ERROR,
+  ERROR_CODE_NO_ERROR,
+  ERROR_CODE_HANDSHAKE_INIT_ERROR,
+  ERROR_CODE_HANDSHAKE_MAPTID_ERROR,
+  ERROR_CODE_HANDSHAKE_RUN_ERROR,
+  ERROR_CODE_ERROR,
 } ErrorCode;
 
 /**
@@ -96,8 +87,8 @@ typedef enum {
  *
  */
 typedef enum {
-    SIM_TYPE_PUBLIC,
-    SIM_TYPE_PRIVATE,
+  SIM_TYPE_PUBLIC,
+  SIM_TYPE_PRIVATE,
 } SimType;
 
 /**
@@ -105,14 +96,14 @@ typedef enum {
  *
  */
 typedef enum {
-    HANDSHAKE_OPERATIONS_NONE,
-    HANDSHAKE_OPERATIONS_MASTER_KEY = 1 << 0,
-    HANDSHAKE_OPERATIONS_SESSION_KEY = 1 << 1,
-    HANDSHAKE_OPERATIONS_PIN_KEY = 1 << 2,
-    HANDSHAKE_OPERATIONS_PARAMETER = 1 << 3,
-    HANDSHAKE_OPERATIONS_CALLHOME = 1 << 4,
-    HANDSHAKE_OPERATIONS_EFT_TOTAL = 1 << 5,
-    HANDSHAKE_OPERATIONS_ALL = 0xFF,
+  HANDSHAKE_OPERATIONS_NONE,
+  HANDSHAKE_OPERATIONS_MASTER_KEY = 1 << 0,
+  HANDSHAKE_OPERATIONS_SESSION_KEY = 1 << 1,
+  HANDSHAKE_OPERATIONS_PIN_KEY = 1 << 2,
+  HANDSHAKE_OPERATIONS_PARAMETER = 1 << 3,
+  HANDSHAKE_OPERATIONS_CALLHOME = 1 << 4,
+  HANDSHAKE_OPERATIONS_EFT_TOTAL = 1 << 5,
+  HANDSHAKE_OPERATIONS_ALL = 0xFF,
 } HandshakeOperations;
 
 /**
@@ -128,8 +119,8 @@ typedef int (*GetCallHomeData)(char* data, const size_t len);
  *
  */
 struct appInfo {
-    char name[32];
-    char version[32];
+  char name[32];
+  char version[32];
 };
 
 /**
@@ -139,8 +130,8 @@ struct appInfo {
  *
  */
 struct deviceInfo {
-    char posUid[32];
-    char model[32];
+  char posUid[32];
+  char model[32];
 };
 
 /**
@@ -150,8 +141,8 @@ struct deviceInfo {
  *
  */
 struct simInfo {
-    SimType simType;
-    char imsi[32];
+  SimType simType;
+  char imsi[32];
 };
 
 /**
@@ -163,10 +154,10 @@ struct simInfo {
  *
  */
 typedef struct Host {
-    char hostUrl[65];
-    int port;
-    ConnectionType connectionType;
-    unsigned int receiveTimeout;
+  char hostUrl[65];
+  int port;
+  ConnectionType connectionType;
+  unsigned int receiveTimeout;
 } Host;
 
 /**
@@ -176,8 +167,8 @@ typedef struct Host {
  *
  */
 typedef struct Error {
-    ErrorCode code;
-    char message[0x200];
+  ErrorCode code;
+  char message[0x200];
 } Error;
 
 /**
@@ -187,8 +178,8 @@ typedef struct Error {
  *
  */
 typedef struct Server {
-    char ip[65];
-    int port;
+  char ip[65];
+  int port;
 } Server;
 
 /**
@@ -198,8 +189,8 @@ typedef struct Server {
  *
  */
 typedef struct PrivatePublicServer {
-    Server privateServer;
-    Server publicServer;
+  Server privateServer;
+  Server publicServer;
 } PrivatePublicServer;
 
 /**
@@ -209,8 +200,8 @@ typedef struct PrivatePublicServer {
  *
  */
 typedef struct MiddlewareServer {
-    PrivatePublicServer ssl;
-    PrivatePublicServer plain;
+  PrivatePublicServer ssl;
+  PrivatePublicServer plain;
 } MiddlewareServer;
 
 /**
@@ -239,81 +230,81 @@ typedef struct MiddlewareServer {
  *
  */
 typedef struct TAMSResponse {
-    char accountToDebit[16];
-    char accountNumber[16];
-    short accountSelectionType;
-    char aggregatorName[128];
-    char balance[16];
-    char commision[16];
-    char email[64];
-    char merchantAddress[128];
-    char merchantName[128];
-    char notificationId[64];
-    char phone[32];
-    char posSupport[64];
-    char preConnect[8];
-    char rrn[16];
-    char stampDuty[16];
-    char stampDutyThreshold[16];
-    char stampLabel[64];
-    TerminalAppType terminalAppType;
-    char userId[64];
+  char accountToDebit[16];
+  char accountNumber[16];
+  short accountSelectionType;
+  char aggregatorName[128];
+  char balance[16];
+  char commision[16];
+  char email[64];
+  char merchantAddress[128];
+  char merchantName[128];
+  char notificationId[64];
+  char phone[32];
+  char posSupport[64];
+  char preConnect[8];
+  char rrn[16];
+  char stampDuty[16];
+  char stampDutyThreshold[16];
+  char stampLabel[64];
+  TerminalAppType terminalAppType;
+  char userId[64];
 
-    /**
-     * @brief Terminals
-     * @amp: amp
-     * @moreFun: morefun
-     * @newLand: newland
-     * @newPos: newpos
-     * @nexGo: nexgo
-     * @pax: pax
-     * @paySharp: paysharp
-     * @verifone: verifone
-     *
-     */
-    struct {
-        char amp[5];
-        char moreFun[5];
-        char newLand[5];
-        char newPos[5];
-        char nexGo[5];
-        char pax[5];
-        char paySharp[5];
-        char verifone[5];
-    } terminals;
+  /**
+   * @brief Terminals
+   * @amp: amp
+   * @moreFun: morefun
+   * @newLand: newland
+   * @newPos: newpos
+   * @nexGo: nexgo
+   * @pax: pax
+   * @paySharp: paysharp
+   * @verifone: verifone
+   *
+   */
+  struct {
+    char amp[5];
+    char moreFun[5];
+    char newLand[5];
+    char newPos[5];
+    char nexGo[5];
+    char pax[5];
+    char paySharp[5];
+    char verifone[5];
+  } terminals;
 
-    /**
-     * @brief Servers
-     * @connectionType: connection type
-     * @middlewareServerType: middleware server type
-     * @tams: TAMS
-     * @callhome: Call Home EPMS
-     * @callhomePosvas: Call Home POSVAS
-     * @callhomeTime: receive timeout for call home
-     * @remoteUpgrade: remote upgrade
-     * @epms: EPMS
-     * @posvas: POSVAS
-     * @vasurl: vas url
-     *
-     */
-    struct {
-        ConnectionType connectionType;
+  /**
+   * @brief Servers
+   * @connectionType: connection type
+   * @middlewareServerType: middleware server type
+   * @tams: TAMS
+   * @callhome: Call Home EPMS
+   * @callhomePosvas: Call Home POSVAS
+   * @callhomeTime: receive timeout for call home
+   * @remoteUpgrade: remote upgrade
+   * @epms: EPMS
+   * @posvas: POSVAS
+   * @vasurl: vas url
+   *
+   */
+  struct {
+    ConnectionType connectionType;
 
-        MiddlewareServerType middlewareServerType;
+    MiddlewareServerType middlewareServerType;
 
-        Server tams;
-        Server callhome;
-        Server callhomePosvas;
+    Server tams;
+    Server callhome;
+    Server callhomePosvas;
 
-        int callhomeTime;
+    int callhomeTime;
 
-        PrivatePublicServer remoteUpgrade;
+    PrivatePublicServer remoteUpgrade;
 
-        MiddlewareServer epms;
-        MiddlewareServer posvas;
+    MiddlewareServer epms;
+    MiddlewareServer posvas;
 
-        char vasUrl[64];
-    } servers;
+    char vasUrl[64];
+  } servers;
 } TAMSResponse;
 
 /**
@@ -323,8 +314,8 @@ typedef struct TAMSResponse {
  *
  */
 typedef struct Key {
-    unsigned char key[33];
-    unsigned char kcv[33];
+  unsigned char key[33];
+  unsigned char kcv[33];
 } Key;
 
 /**
@@ -340,20 +331,20 @@ typedef struct Key {
  *
  */
 typedef struct Parameters {
-    int batchNumber;
-    char callHomeTime[25];
-    char cardAcceptorID[41];
-    char countryCode[8];
-    char currencyCode[8];
-    char currencySymbol[8];
-    long endOfDay;
-    char footer[40];
-    char header[40];
-    char merchantCategoryCode[8];
-    char merchantNameAndLocation[41];
-    short resetPin;
-    char serverDateAndTime[20];
-    char timeout[34];
+  int batchNumber;
+  char callHomeTime[25];
+  char cardAcceptorID[41];
+  char countryCode[8];
+  char currencyCode[8];
+  char currencySymbol[8];
+  long endOfDay;
+  char footer[40];
+  char header[40];
+  char merchantCategoryCode[8];
+  char merchantNameAndLocation[41];
+  short resetPin;
+  char serverDateAndTime[20];
+  char timeout[34];
 } Parameters;
 
 /**
@@ -366,11 +357,11 @@ typedef struct Parameters {
  *
  */
 typedef struct NetworkManagementResponse {
-    char responseCode[3];
-    Key master;
-    Key session;
-    Key pin;
-    Parameters parameters;
+  char responseCode[3];
+  Key master;
+  Key session;
+  Key pin;
+  Parameters parameters;
 } NetworkManagementResponse;
 
 /**
@@ -395,63 +386,95 @@ typedef struct NetworkManagementResponse {
  *
  */
 typedef struct Handshake_t {
-    char tid[9];
+  char tid[9];
 
-    // info
-    struct appInfo appInfo;
-    struct deviceInfo deviceInfo;
-    struct simInfo simInfo;
+  // info
+  struct appInfo appInfo;
+  struct deviceInfo deviceInfo;
+  struct simInfo simInfo;
 
-    // enums
-    HandshakeMapDevice mapDevice;
-    HandshakeOperations operations;
-    Platform platform;
-    PtadKey ptadKey;
+  // enums
+  HandshakeMapDevice mapDevice;
+  HandshakeOperations operations;
+  Platform platform;
+  PtadKey ptadKey;
 
-    // hosts
-    Host callHomeHost;
-    Host handshakeHost;
-    Host mapDeviceHost;
+  // hosts
+  Host callHomeHost;
+  Host handshakeHost;
+  Host mapDeviceHost;
 
-    // responses
-    NetworkManagementResponse networkManagementResponse;
-    TAMSResponse tamsResponse;
+  // responses
+  NetworkManagementResponse networkManagementResponse;
+  TAMSResponse tamsResponse;
 
-    // callback
-    ComSendReceive comSendReceive;
-    GetCallHomeData getCallHomeData;
-    ComSentinel comSentinel;
+  // callback
+  ComSendReceive comSendReceive;
+  GetCallHomeData getCallHomeData;
+  ComSentinel comSentinel;
 
-    Error error;
+  Error error;
 } Handshake_t;
 
-#define HANDSHAKE_INIT_DATA                                                    \
-    { { '\0' }, { { '\0' }, { '\0' } }, { { '\0' }, { '\0' } },                \
-        { SIM_TYPE_PUBLIC, { '\0' } }, HANDSHAKE_MAP_DEVICE_FALSE,             \
-        HANDSHAKE_OPERATIONS_ALL, PLATFORM_NIBSS, PTAD_KEY_UNKNOWN,            \
-        { { '\0' }, 0, CONNECTION_TYPE_PLAIN, 0 },                             \
-        { { '\0' }, 0, CONNECTION_TYPE_PLAIN, 0 },                             \
-        { { '\0' }, 0, CONNECTION_TYPE_PLAIN, 0 },                             \
-        { { '\0' }, { { '\0' }, { '\0' } }, { { '\0' }, { '\0' } },            \
-            { { '\0' }, { '\0' } },                                            \
-            { 0, { '\0' }, { '\0' }, { '\0' }, { '\0' }, { '\0' }, 0,          \
-                { '\0' }, { '\0' }, { '\0' }, { '\0' }, 0, { '\0' },           \
-                { '\0' } } },                                                  \
-        { { '\0' }, { '\0' }, 0, { '\0' }, { '\0' }, { '\0' }, { '\0' },       \
-            { '\0' }, { '\0' }, { '\0' }, { '\0' }, { '\0' }, { '\0' },        \
-            { '\0' }, { '\0' }, { '\0' }, { '\0' }, TERMINAL_APP_TYPE_UNKNOWN, \
-            { '\0' },                                                          \
-            { { '\0' }, { '\0' }, { '\0' }, { '\0' }, { '\0' }, { '\0' },      \
-                { '\0' }, { '\0' } },                                          \
-            { CONNECTION_TYPE_PLAIN, MIDDLEWARE_SERVER_TYPE_UNKNOWN,           \
-                { { '\0' }, 0 }, { { '\0' }, 0 }, { { '\0' }, 0 }, 0,          \
-                { { { '\0' }, 0 }, { { '\0' }, 0 } },                          \
-                { { { { '\0' }, 0 }, { { '\0' }, 0 } },                        \
-                    { { { '\0' }, 0 }, { { '\0' }, 0 } } },                    \
-                { { { { '\0' }, 0 }, { { '\0' }, 0 } },                        \
-                    { { { '\0' }, 0 }, { { '\0' }, 0 } } },                    \
-                { '\0' } } },                                                  \
-        NULL, NULL, NULL, { ERROR_CODE_ERROR, { '\0' } } }
+#define HANDSHAKE_INIT_DATA                                                   \
+  {                                                                           \
+    {'\0'}, {{'\0'}, {'\0'}}, {{'\0'}, {'\0'}}, {SIM_TYPE_PUBLIC, {'\0'}},    \
+        HANDSHAKE_MAP_DEVICE_FALSE, HANDSHAKE_OPERATIONS_ALL, PLATFORM_NIBSS, \
+        PTAD_KEY_UNKNOWN, {{'\0'}, 0, CONNECTION_TYPE_PLAIN, 0},              \
+        {{'\0'}, 0, CONNECTION_TYPE_PLAIN, 0},                                \
+        {{'\0'}, 0, CONNECTION_TYPE_PLAIN, 0},                                \
+        {{'\0'},                                                              \
+         {{'\0'}, {'\0'}},                                                    \
+         {{'\0'}, {'\0'}},                                                    \
+         {{'\0'}, {'\0'}},                                                    \
+         {0,                                                                  \
+          {'\0'},                                                             \
+          {'\0'},                                                             \
+          {'\0'},                                                             \
+          {'\0'},                                                             \
+          {'\0'},                                                             \
+          0,                                                                  \
+          {'\0'},                                                             \
+          {'\0'},                                                             \
+          {'\0'},                                                             \
+          {'\0'},                                                             \
+          0,                                                                  \
+          {'\0'},                                                             \
+          {'\0'}}},                                                           \
+        {{'\0'},                                                              \
+         {'\0'},                                                              \
+         0,                                                                   \
+         {'\0'},                                                              \
+         {'\0'},                                                              \
+         {'\0'},                                                              \
+         {'\0'},                                                              \
+         {'\0'},                                                              \
+         {'\0'},                                                              \
+         {'\0'},                                                              \
+         {'\0'},                                                              \
+         {'\0'},                                                              \
+         {'\0'},                                                              \
+         {'\0'},                                                              \
+         {'\0'},                                                              \
+         {'\0'},                                                              \
+         {'\0'},                                                              \
+         TERMINAL_APP_TYPE_UNKNOWN,                                           \
+         {'\0'},                                                              \
+         {{'\0'}, {'\0'}, {'\0'}, {'\0'}, {'\0'}, {'\0'}, {'\0'}, {'\0'}},    \
+         {CONNECTION_TYPE_PLAIN,                                              \
+          MIDDLEWARE_SERVER_TYPE_UNKNOWN,                                     \
+          {{'\0'}, 0},                                                        \
+          {{'\0'}, 0},                                                        \
+          {{'\0'}, 0},                                                        \
+          0,                                                                  \
+          {{{'\0'}, 0}, {{'\0'}, 0}},                                         \
+          {{{{'\0'}, 0}, {{'\0'}, 0}}, {{{'\0'}, 0}, {{'\0'}, 0}}},           \
+          {{{{'\0'}, 0}, {{'\0'}, 0}}, {{{'\0'}, 0}, {{'\0'}, 0}}},           \
+          {'\0'}}},                                                           \
+        NULL, NULL, NULL, {                                                   \
+      ERROR_CODE_ERROR, { '\0' }                                              \
+    }                                                                         \
+  }
 
 void logTamsResponse(TAMSResponse* tamsResponse);
 void logTerminals(TAMSResponse* tamsResponse);

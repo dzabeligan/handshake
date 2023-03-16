@@ -49,7 +49,8 @@ typedef struct C8583Struct* IsoMsg;
  */
 
 typedef short (*MacFunc)(unsigned char* mac, const unsigned char* key,
-    const int keySize, const unsigned char* packet, const int packetSize);
+                         const int keySize, const unsigned char* packet,
+                         const int packetSize);
 
 /**
  * Function: createIso8583
@@ -86,7 +87,7 @@ DllSpec void destroyIso8583(const IsoMsg isoMsg);
  */
 
 DllSpec short setDatum(const IsoMsg isoMsg, const int field,
-    const unsigned char* datum, const int datumSize);
+                       const unsigned char* datum, const int datumSize);
 
 /**
  * Function: getDatum
@@ -101,7 +102,7 @@ DllSpec short setDatum(const IsoMsg isoMsg, const int field,
  */
 
 DllSpec short getDatum(const IsoMsg isoMsg, const int field,
-    unsigned char* datum, const int datumSize);
+                       unsigned char* datum, const int datumSize);
 
 /**
  * Function: packData
@@ -113,8 +114,8 @@ DllSpec short getDatum(const IsoMsg isoMsg, const int field,
  * @author Opeyemi Adeyemi Sunday.
  */
 
-DllSpec short packData(
-    const IsoMsg isoMsg, unsigned char* packet, const int size);
+DllSpec short packData(const IsoMsg isoMsg, unsigned char* packet,
+                       const int size);
 
 /**
  * Function: unpackData
@@ -126,8 +127,8 @@ DllSpec short packData(
  * @author Opeyemi Adeyemi Sunday.
  */
 
-DllSpec short unpackData(
-    const IsoMsg isoMsg, const unsigned char* packet, const int size);
+DllSpec short unpackData(const IsoMsg isoMsg, const unsigned char* packet,
+                         const int size);
 
 /**
  * Function: unpackDataWithMac
@@ -144,8 +145,8 @@ DllSpec short unpackData(
  */
 
 DllSpec short packDataWithMac(const IsoMsg isoMsg, unsigned char* packet,
-    const int size, const unsigned char* key, const int keySize,
-    MacFunc macFunc);
+                              const int size, const unsigned char* key,
+                              const int keySize, MacFunc macFunc);
 
 /**
  * Function: logIsoMsg
@@ -170,8 +171,8 @@ DllSpec void logIsoMsg(const IsoMsg isoMsg, FILE* stream);
  * @author Opeyemi Adeyemi Sunday.
  */
 
-DllSpec void dumpPacket(
-    FILE* stream, const void* packet, const unsigned int size);
+DllSpec void dumpPacket(FILE* stream, const void* packet,
+                        const unsigned int size);
 
 /**
  * Function: getMessage
