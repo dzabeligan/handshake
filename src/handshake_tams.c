@@ -423,6 +423,13 @@ error:
   return ret;
 }
 
+static short getCapk(Handshake_t* handshake) {
+  (void)handshake;
+
+  debug("CAPK DOWNLOAD");
+  return EXIT_SUCCESS;
+}
+
 void bindTams(Handshake_Internals* handshake_internals) {
   handshake_internals->getMasterKey = getMasterKey;
   handshake_internals->getSessionKey = getSessionKey;
@@ -430,4 +437,5 @@ void bindTams(Handshake_Internals* handshake_internals) {
   handshake_internals->getParameters = getParameters;
   handshake_internals->doCallHome = doCallHome;
   handshake_internals->getEftTotal = getEftTotal;
+  handshake_internals->getCapk = getCapk;
 }

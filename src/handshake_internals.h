@@ -36,6 +36,7 @@ typedef short (*GetNetworkManagementData)(Handshake_t* handshake);
  * @getPinKey: function pointer to get pin key
  * @getParameters: function pointer to get parameters
  * @doCallHome: function pointer to do call home
+ * @getCapk: function pointer to get capk
  * @getEftTotal: function pointer to get eft total
  *
  */
@@ -45,6 +46,7 @@ typedef struct Handshake_Internals {
   GetNetworkManagementData getPinKey;
   GetNetworkManagementData getParameters;
   GetNetworkManagementData doCallHome;
+  GetNetworkManagementData getCapk;
   GetNetworkManagementData getEftTotal;
 } Handshake_Internals;
 

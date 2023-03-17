@@ -19,6 +19,7 @@ typedef enum {
   NETWORK_MANAGEMENT_PIN_KEY,
   NETWORK_MANAGEMENT_PARAMETER_DOWNLOAD,
   NETWORK_MANAGEMENT_CALL_HOME,
+  NETWORK_MANAGEMENT_CAPK_DOWNLOAD,
   NETWORK_MANAGEMENT_UNKNOWN,
 } NetworkManagementType;
 
@@ -35,6 +36,8 @@ static const char* networkManagementTypeToProcessCode(
       return "9C";
     case NETWORK_MANAGEMENT_CALL_HOME:
       return "9D";
+    case NETWORK_MANAGEMENT_CAPK_DOWNLOAD:
+      return "9E";
     default:
       return NULL;
   }
@@ -53,8 +56,10 @@ static const char* networkManagementTypeToString(
       return "PARAMETER DOWNLOAD";
     case NETWORK_MANAGEMENT_CALL_HOME:
       return "CALL HOME";
+    case NETWORK_MANAGEMENT_CAPK_DOWNLOAD:
+      return "CAPK DOWNLOAD";
     default:
-      return NULL;
+      return "";
   }
 }
 
@@ -86,6 +91,23 @@ static int buildDE62(char* buf, size_t bufLen, Handshake_t* handshake,
                   state);
   snprintf(&buf[pos], bufLen - pos, "%s%03d%s", "12",
            (int)strlen(handshake->simInfo.imsi), handshake->simInfo.imsi);
+
+  ret = EXIT_SUCCESS;
+error:
+  return ret;
+}
+
+static int buildDE63(char* buf, size_t bufLen, Handshake_t* handshake,
+                     NetworkManagementType networkManagementType) {
+  short ret = EXIT_FAILURE;
+  char state[0x10000] = {'\0'};
+
+  check_debug(networkManagementType == NETWORK_MANAGEMENT_CAPK_DOWNLOAD,
+              "Build DE 63 for only `CAPK Download`");
+
+  snprintf(buf, bufLen, "%s%03d%s", "01",
+           (int)strlen(handshake->deviceInfo.posUid),
+           handshake->deviceInfo.posUid);
 
   ret = EXIT_SUCCESS;
 error:
@@ -166,6 +188,7 @@ static int buildNetworkManagementIso(
   char timeBuff[8] = {'\0'};
   char processingCode[8] = {'\0'};
   char de62Buf[0x1000] = {'\0'};
+  char de63Buf[0x100] = {'\0'};
   time_t now = time(NULL);
   struct tm now_t = *localtime(&now);
   IsoMsg isoMsg = createIso8583();
@@ -204,6 +227,13 @@ static int buildNetworkManagementIso(
       EXIT_SUCCESS) {
     check(setDatum(isoMsg, RESERVED_PRIVATE_62, (unsigned char*)de62Buf,
                    strlen(de62Buf)) == 0,
+          "%s", getMessage(isoMsg));
+    useMac = 1;
+  }
+  if (buildDE63(de63Buf, sizeof(de63Buf), handshake, networkManagementType) ==
+      EXIT_SUCCESS) {
+    check(setDatum(isoMsg, RESERVED_PRIVATE_63, (unsigned char*)de63Buf,
+                   strlen(de63Buf)) == 0,
           "%s", getMessage(isoMsg));
     useMac = 1;
   }
@@ -490,7 +520,7 @@ error:
 
 static short getNetworkData(Handshake_t* handshake,
                             NetworkManagementType networkManagementType) {
-  unsigned char responseBuf[0x1000] = {'\0'};
+  unsigned char responseBuf[0x2000] = {'\0'};
   short ret = EXIT_FAILURE;
 
   check(getNetworkDataHelper(responseBuf, sizeof(responseBuf) - 1, handshake,
@@ -507,36 +537,42 @@ error:
 }
 
 static short getMasterKey(Handshake_t* handshake) {
-  debug("MASTER");
+  debug("%s", networkManagementTypeToString(NETWORK_MANAGEMENT_MASTER_KEY));
   return getKey(handshake, &handshake->networkManagementResponse.master,
                 NETWORK_MANAGEMENT_MASTER_KEY);
 }
 
 static short getSessionKey(Handshake_t* handshake) {
-  debug("SESSION");
+  debug("%s", networkManagementTypeToString(NETWORK_MANAGEMENT_SESSION_KEY));
   return getKey(handshake, &handshake->networkManagementResponse.session,
                 NETWORK_MANAGEMENT_SESSION_KEY);
 }
 
 static short getPinKey(Handshake_t* handshake) {
-  debug("PIN");
+  debug("%s", networkManagementTypeToString(NETWORK_MANAGEMENT_PIN_KEY));
   return getKey(handshake, &handshake->networkManagementResponse.pin,
                 NETWORK_MANAGEMENT_PIN_KEY);
 }
 
 static short getParameters(Handshake_t* handshake) {
-  debug("PARAMETER");
+  debug("%s",
+        networkManagementTypeToString(NETWORK_MANAGEMENT_PARAMETER_DOWNLOAD));
   return getNetworkData(handshake, NETWORK_MANAGEMENT_PARAMETER_DOWNLOAD);
 }
 
 static short doCallHome(Handshake_t* handshake) {
-  debug("CALL HOME");
+  debug("%s", networkManagementTypeToString(NETWORK_MANAGEMENT_CALL_HOME));
   return getNetworkData(handshake, NETWORK_MANAGEMENT_CALL_HOME);
+}
+
+static short getCapk(Handshake_t* handshake) {
+  debug("%s", networkManagementTypeToString(NETWORK_MANAGEMENT_CAPK_DOWNLOAD));
+  return getNetworkData(handshake, NETWORK_MANAGEMENT_CAPK_DOWNLOAD);
 }
 
 static short getEftTotal(Handshake_t* handshake) {
   (void)handshake;
-  debug("EFT TOTAL");
+  debug("%s", networkManagementTypeToString(NETWORK_MANAGEMENT_UNKNOWN));
   return EXIT_SUCCESS;
 }
 
@@ -546,5 +582,6 @@ void bindNibss(Handshake_Internals* handshake_internals) {
   handshake_internals->getPinKey = getPinKey;
   handshake_internals->getParameters = getParameters;
   handshake_internals->doCallHome = doCallHome;
+  handshake_internals->getCapk = getCapk;
   handshake_internals->getEftTotal = getEftTotal;
 }
