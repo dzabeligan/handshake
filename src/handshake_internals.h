@@ -21,7 +21,7 @@ extern "C" {
 #include "../des/des.h"
 #include "../ezxml/ezxml.h"
 #include "../inc/handshake.h"
-#include "../platform/utils.h"
+#include "../platform/platform.h"
 
 /**
  * @brief Function pointer for Network Management operations
