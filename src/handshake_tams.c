@@ -10,45 +10,6 @@
  */
 #include "handshake_internals.h"
 
-static short getTamsHash(char* hash, const char* data, const char* key) {
-  char hashdata[500];
-  char digest[65] = {'\0'};
-  short ret = EXIT_FAILURE;
-  char body[1000] = {'\0'};
-  char* token = NULL;
-
-  check(data && key, "`data` or `key` can't be NULL");
-
-  memset(body, 0, sizeof(body));
-  memset(hashdata, 0, sizeof(hashdata));
-  strcpy(body, data);
-
-  token = (char*)strtok(body, "&");
-
-  while (token != NULL) {
-    int i = 0;
-    int len = strlen(token);
-
-    for (i = 0; i < len; i++) {
-      if (token[i] == '=') {
-        strcat(hashdata, &token[i + 1]);
-        break;
-      }
-    }
-
-    token = strtok(NULL, "&");
-  }
-
-  memset(digest, 0, sizeof(digest));
-
-  get256Hash(digest, sizeof(digest), hashdata, key);
-  sprintf(hash, "S%s", digest);
-
-  ret = EXIT_SUCCESS;
-error:
-  return ret;
-}
-
 static int buildTamsHttpRequest(char* requestBuf, size_t bufLen,
                                 Handshake_t* handshake, char* data,
                                 const char* path) {
@@ -130,7 +91,6 @@ static short getMasterKey(Handshake_t* handshake) {
       "</newkey>");
   check(len > 0, "Error sending or receiving request");
   debug("Response: '%s (%d)'", responseBuf, len);
-
   check(parseMasterkeyResponse(handshake, (char*)responseBuf) == EXIT_SUCCESS,
         "Parse Error");
 
