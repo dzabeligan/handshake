@@ -8,8 +8,8 @@ extern "C" {
 #include <stdio.h>
 
 #include "../ezxml/ezxml.h"
+#include "../rc4/rc4.h"
 
-int getState(char* data, const size_t len);
 short ascToBcd(unsigned char* bcd, const short bcdLen, const char* asc);
 short bcdToAsc(unsigned char* asc, const int ascLen, const unsigned char* bcd,
                const int bcdLen);
@@ -26,6 +26,8 @@ int decryptTamsKey(char (*clearSessionKeys)[33],
 short get256Hash(char* hash, const int size, char* packet,
                  const char* sessionKey);
 short checkTamsError(char* message, size_t bufLen, ezxml_t root);
+short getTamsHash(char* hash, const char* data, const char* key);
+char* url_encode_html5(unsigned char* s, char* enc);
 
 #ifdef __cplusplus
 }

@@ -1,34 +1,10 @@
-#include "utils.h"
+#include "itexUtils.h"
 
 #include <ctype.h>
 #include <string.h>
-#include <time.h>
 
 #include "../dbg.h"
-#include "../rc4/rc4.h"
 #include "../sha256/sha256.h"
-
-int getState(char* state, const size_t size) {
-  const char* str =
-      "{\"ptad\": \"ITEX\",\"serial\": \"346228245\",\"bl\": 70,\"btemp\": "
-      "30,\"ctime\": \"%s\",\"cs\": \"Charging\",\"ps\": "
-      "\"PrinterAvailable\",\"tid\": \"2033GP24\",\"coms\": "
-      "\"GSM/LTE\",\"sim\": \"\",\"simID\": "
-      "\"621301234567890123456789\",\"imsi\": \"621301234567890\",\"ss\" : "
-      "100,\"cloc\": "
-      "\"{cid:\"0123\",lac:\"1234\",mcc:\"62130\",mnc:\"30\",ss:100dbm}\","
-      "\"tmn\": \"LaptopPort\",\"tmanu\": \"Apple\",\"hb\": "
-      "\"true\",\"lTxnAt\": \"%s\",\"sv\": \"0.0.1\",\"pads\": \"\"}";
-  time_t now = time(NULL);
-  struct tm now_t = *localtime(&now);
-  char dateTimeBuff[64] = {'\0'};
-  char lastTrans[16] = {'\0'};
-
-  strftime(dateTimeBuff, sizeof(dateTimeBuff), "%a %d/%m/%Y %H:%M:%S", &now_t);
-  strftime(lastTrans, sizeof(lastTrans), "%Y%m%d%H%M%S", &now_t);
-
-  return snprintf(state, size, str, dateTimeBuff, lastTrans);
-}
 
 static unsigned char atoh(const char c) {
   if (c >= '0' && c <= '9') return (c - '0');
@@ -306,4 +282,76 @@ short checkTamsError(char* message, size_t bufLen, ezxml_t root) {
   }
 
   return 0;
+}
+
+short getTamsHash(char* hash, const char* data, const char* key) {
+  char hashdata[0x1000];
+  char digest[65] = {'\0'};
+  short ret = EXIT_FAILURE;
+  char body[0x1000] = {'\0'};
+  char* token = NULL;
+
+  check(data && key, "`data` or `key` can't be NULL");
+
+  memset(body, 0, sizeof(body));
+  memset(hashdata, 0, sizeof(hashdata));
+  strcpy(body, data);
+
+  token = (char*)strtok(body, "&");
+
+  while (token != NULL) {
+    int i = 0;
+    int len = strlen(token);
+
+    for (i = 0; i < len; i++) {
+      if (token[i] == '=') {
+        strcat(hashdata, &token[i + 1]);
+        break;
+      }
+    }
+
+    token = strtok(NULL, "&");
+  }
+
+  memset(digest, 0, sizeof(digest));
+
+  get256Hash(digest, sizeof(digest), hashdata, key);
+  sprintf(hash, "S%s", digest);
+
+  ret = EXIT_SUCCESS;
+error:
+  return ret;
+}
+
+static char rfc3986[256] = {0};
+static char html5[256] = {0};
+
+static void url_encoder_rfc_tables_init() {
+  int i;
+
+  for (i = 0; i < 256; i++) {
+    rfc3986[i] =
+        isalnum(i) || i == '~' || i == '-' || i == '.' || i == '_' ? i : 0;
+    html5[i] = isalnum(i) || i == '*' || i == '-' || i == '.' || i == '_' ? i
+               : (i == ' ')                                               ? '+'
+                                                                          : 0;
+  }
+}
+
+static char* url_encode(char* table, unsigned char* s, char* enc) {
+  for (; *s; s++) {
+    if (table[*s])
+      *enc = table[*s];
+    else
+      sprintf(enc, "%%%02X", *s);
+    while (*++enc)
+      ;
+  }
+
+  return (enc);
+}
+
+char* url_encode_html5(unsigned char* s, char* enc) {
+  url_encoder_rfc_tables_init();
+  return url_encode(rfc3986, s, enc);
 }
