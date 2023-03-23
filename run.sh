@@ -1,3 +1,3 @@
 # run in build directory
 make -j4
-./poseft_handshake_tests &> ../log.log
+./poseft_handshake_tests &> ../logs/log.log
