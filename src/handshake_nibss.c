@@ -147,8 +147,8 @@ static short checkKeyValue(const char* key, const char* kcv) {
   return strncmp(kcv, actualCheckValueStr, 6) == 0;
 }
 
-static void getClearKey(char* clearKey, const int size,
-                        const char* encryptedData, const char* key) {
+static void getClearKeyHelper(char* clearKey, const int size,
+                              const char* encryptedData, const char* key) {
   unsigned char keyBcd[16];
   unsigned char encrytedDataBcd[16];
   unsigned char clearKeyBcd[16];
@@ -170,13 +170,8 @@ static void getDecryptionKey(Handshake_t* handshake,
   if (networkManagementType == NETWORK_MANAGEMENT_MASTER_KEY) {
     strncpy(decryptionKey, getPtadKey(handshake->ptadKey), keyBufLen);
   } else {
-    char clearKey[33] = {'\0'};
-
-    getClearKey(clearKey, sizeof(clearKey),
-                (char*)handshake->networkManagementResponse.master.key,
-                getPtadKey(handshake->ptadKey));
-
-    strncpy(decryptionKey, clearKey, keyBufLen);
+    strncpy(decryptionKey,
+            (char*)handshake->networkManagementResponse.master.key, keyBufLen);
   }
 }
 
@@ -247,9 +242,9 @@ static int buildNetworkManagementIso(
     getDecryptionKey(handshake, NETWORK_MANAGEMENT_SESSION_KEY, decryptionKey,
                      sizeof(decryptionKey));
     check(decryptionKey[0], "Error getting decryption key");
-    getClearKey(clearKey, sizeof(clearKey),
-                (char*)handshake->networkManagementResponse.session.key,
-                decryptionKey);
+    getClearKeyHelper(clearKey, sizeof(clearKey),
+                      (char*)handshake->networkManagementResponse.session.key,
+                      decryptionKey);
 
     ret = packDataWithMac(isoMsg, packetBuf, len, (unsigned char*)clearKey,
                           strlen(clearKey), generateMac);
@@ -382,12 +377,7 @@ static short getNetworkDataHelper(unsigned char* responseBuf, size_t bufLen,
         handshake->handshakeHost.hostUrl, handshake->handshakeHost.port,
         handshake->handshakeHost.connectionType, NULL, NULL);
   }
-  if (len < 0) {
-    log_err("Error sending or receiving request");
-    snprintf(handshake->error.message, sizeof(handshake->error.message) - 1,
-             "Error sending or receiving request");
-    return EXIT_FAILURE;
-  }
+  check(len > 0, "Error sending or receiving request");
   debug("Response: '%s (%d) (%d)'", &responseBuf[2], len,
         (responseBuf[0] << 8) + responseBuf[1]);
 
@@ -470,7 +460,7 @@ error:
   return ret;
 }
 
-static short validateKey(Handshake_t* handshake, Key* key,
+static short getClearKey(Handshake_t* handshake, Key* key,
                          NetworkManagementType networkManagementType) {
   char decryptionKey[33] = {'\0'};
   char clearKey[33] = {'\0'};
@@ -481,7 +471,7 @@ static short validateKey(Handshake_t* handshake, Key* key,
     log_err("Error getting decryption key");
     return EXIT_FAILURE;
   }
-  getClearKey(clearKey, sizeof(clearKey), (char*)key->key, decryptionKey);
+  getClearKeyHelper(clearKey, sizeof(clearKey), (char*)key->key, decryptionKey);
 
   debug("Decryption key '%s'", decryptionKey);
   debug("Clear key '%s'", clearKey);
@@ -494,6 +484,7 @@ static short validateKey(Handshake_t* handshake, Key* key,
              networkManagementTypeToString(networkManagementType));
     return EXIT_FAILURE;
   }
+  strncpy(key->key, clearKey, sizeof(key->key));
 
   return EXIT_SUCCESS;
 }
@@ -510,8 +501,8 @@ static short getKey(Handshake_t* handshake, Key* key,
   check(parseGetKeyResponse(handshake, responseBuf, key) == EXIT_SUCCESS,
         "Parsing Error");
 
-  check(validateKey(handshake, key, networkManagementType) == EXIT_SUCCESS,
-        "Validation Error");
+  check(getClearKey(handshake, key, networkManagementType) == EXIT_SUCCESS,
+        "Error Getting Clear Key");
 
   ret = EXIT_SUCCESS;
 error:
