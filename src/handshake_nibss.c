@@ -236,18 +236,11 @@ static int buildNetworkManagementIso(
   logIsoMsg(isoMsg, stderr);
 
   if (useMac) {
-    char decryptionKey[33] = {'\0'};
-    char clearKey[33] = {'\0'};
-
-    getDecryptionKey(handshake, NETWORK_MANAGEMENT_SESSION_KEY, decryptionKey,
-                     sizeof(decryptionKey));
-    check(decryptionKey[0], "Error getting decryption key");
-    getClearKeyHelper(clearKey, sizeof(clearKey),
-                      (char*)handshake->networkManagementResponse.session.key,
-                      decryptionKey);
-
-    ret = packDataWithMac(isoMsg, packetBuf, len, (unsigned char*)clearKey,
-                          strlen(clearKey), generateMac);
+    ret = packDataWithMac(
+        isoMsg, packetBuf, len,
+        handshake->networkManagementResponse.session.key,
+        strlen((char*)handshake->networkManagementResponse.session.key),
+        generateMac);
   } else {
     ret = packData(isoMsg, packetBuf, len);
   }
@@ -484,7 +477,7 @@ static short getClearKey(Handshake_t* handshake, Key* key,
              networkManagementTypeToString(networkManagementType));
     return EXIT_FAILURE;
   }
-  strncpy(key->key, clearKey, sizeof(key->key));
+  strncpy((char*)key->key, clearKey, sizeof(key->key));
 
   return EXIT_SUCCESS;
 }

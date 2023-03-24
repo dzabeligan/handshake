@@ -91,6 +91,7 @@ static short getMasterKey(Handshake_t* handshake) {
       "</newkey>");
   check(len > 0, "Error sending or receiving request");
   debug("Response: '%s (%d)'", responseBuf, len);
+
   check(parseMasterkeyResponse(handshake, (char*)responseBuf) == EXIT_SUCCESS,
         "Parse Error");
 
