@@ -435,6 +435,8 @@ static short parseGetNetworkDataResponse(
   short ret = EXIT_FAILURE;
   IsoMsg isoMsg = createIso8583();
   unsigned char de62Buff[0x1000] = {'\0'};
+  const char* NGN_CURRENCY_CODE = "566";
+  const char* NGN_CURRENCY_SYMBOL = "NGN";
 
   check(parseGetNetworkDataResponseHelper(handshake, isoMsg, responseBuf) ==
             EXIT_SUCCESS,
@@ -445,6 +447,14 @@ static short parseGetNetworkDataResponse(
           "%s", getMessage(isoMsg));
 
     parseDE62(handshake, (char*)de62Buff, sizeof(de62Buff));
+    if (strncmp(handshake->networkManagementResponse.parameters.currencyCode,
+                NGN_CURRENCY_CODE, 3) == 0) {
+      strncpy(
+          handshake->networkManagementResponse.parameters.currencySymbol,
+          NGN_CURRENCY_SYMBOL,
+          sizeof(
+              handshake->networkManagementResponse.parameters.currencySymbol));
+    }
   }
 
   ret = EXIT_SUCCESS;
