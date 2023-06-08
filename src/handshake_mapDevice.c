@@ -66,7 +66,7 @@ static pos_status getPosStatus(Handshake_t* handshake, ezxml_t tranTag) {
 
   ret = STATUS_READY;
 error:
-  if (ret != STATUS_READY && !handshake->error.message[0]) {
+  if (ret != STATUS_READY) {
     snprintf(handshake->error.message, sizeof(handshake->error.message) - 1,
              "'%s' Not Mapped", handshake->deviceInfo.posUid);
   }

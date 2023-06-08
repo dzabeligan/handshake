@@ -13,6 +13,10 @@
 
 #include "handshake_internals.h"
 
+/**
+ * @brief Network Management Type
+ *
+ */
 typedef enum {
   NETWORK_MANAGEMENT_MASTER_KEY,
   NETWORK_MANAGEMENT_SESSION_KEY,
@@ -23,6 +27,12 @@ typedef enum {
   NETWORK_MANAGEMENT_UNKNOWN,
 } NetworkManagementType;
 
+/**
+ * @brief Network Management Type to Processing Code
+ *
+ * @param networkManagementType
+ * @return const char*
+ */
 static const char* networkManagementTypeToProcessCode(
     NetworkManagementType networkManagementType) {
   switch (networkManagementType) {
@@ -43,6 +53,12 @@ static const char* networkManagementTypeToProcessCode(
   }
 }
 
+/**
+ * @brief Network Management Type to String
+ *
+ * @param networkManagementType
+ * @return const char*
+ */
 static const char* networkManagementTypeToString(
     NetworkManagementType networkManagementType) {
   switch (networkManagementType) {
@@ -63,6 +79,15 @@ static const char* networkManagementTypeToString(
   }
 }
 
+/**
+ * @brief Build DE 62
+ *
+ * @param buf
+ * @param bufLen
+ * @param handshake
+ * @param networkManagementType
+ * @return int
+ */
 static int buildDE62(char* buf, size_t bufLen, Handshake_t* handshake,
                      NetworkManagementType networkManagementType) {
   short pos = 0;
@@ -97,6 +122,15 @@ error:
   return ret;
 }
 
+/**
+ * @brief Build DE 63
+ *
+ * @param buf
+ * @param bufLen
+ * @param handshake
+ * @param networkManagementType
+ * @return int
+ */
 static int buildDE63(char* buf, size_t bufLen, Handshake_t* handshake,
                      NetworkManagementType networkManagementType) {
   short ret = EXIT_FAILURE;
@@ -114,6 +148,12 @@ error:
   return ret;
 }
 
+/**
+ * @brief Get the Ptad Key object
+ *
+ * @param ptadKey
+ * @return const char*
+ */
 static const char* getPtadKey(PtadKey ptadKey) {
   switch (ptadKey) {
     case PTAD_KEY_EPMS:
@@ -130,6 +170,13 @@ static const char* getPtadKey(PtadKey ptadKey) {
   }
 }
 
+/**
+ * @brief Check Key with Key Check Value
+ *
+ * @param key
+ * @param kcv
+ * @return short
+ */
 static short checkKeyValue(const char* key, const char* kcv) {
   unsigned char keyBcd[16];
   unsigned char actualCheckValueBcd[16] = {'\0'};
@@ -147,6 +194,14 @@ static short checkKeyValue(const char* key, const char* kcv) {
   return strncmp(kcv, actualCheckValueStr, 6) == 0;
 }
 
+/**
+ * @brief Get the Clear Key Helper object
+ *
+ * @param clearKey
+ * @param size
+ * @param encryptedData
+ * @param key
+ */
 static void getClearKeyHelper(char* clearKey, const int size,
                               const char* encryptedData, const char* key) {
   unsigned char keyBcd[16];
@@ -162,6 +217,14 @@ static void getClearKeyHelper(char* clearKey, const int size,
   bcdToAsc((unsigned char*)clearKey, size, clearKeyBcd, sizeof(clearKeyBcd));
 }
 
+/**
+ * @brief Get the Decryption Key object
+ *
+ * @param handshake
+ * @param networkManagementType
+ * @param decryptionKey
+ * @param keyBufLen
+ */
 static void getDecryptionKey(Handshake_t* handshake,
                              NetworkManagementType networkManagementType,
                              char* decryptionKey, size_t keyBufLen) {
@@ -175,6 +238,15 @@ static void getDecryptionKey(Handshake_t* handshake,
   }
 }
 
+/**
+ * @brief Build Network Management ISO Message
+ *
+ * @param packetBuf
+ * @param len
+ * @param handshake
+ * @param networkManagementType
+ * @return int
+ */
 static int buildNetworkManagementIso(
     unsigned char* packetBuf, size_t len, Handshake_t* handshake,
     NetworkManagementType networkManagementType) {
@@ -249,6 +321,13 @@ error:
   return ret;
 }
 
+/**
+ * @brief Get the Length object
+ *
+ * @param line
+ * @param width
+ * @return int
+ */
 static int getLength(char* line, int width) {
   int ret = 0;
   size_t len = strlen(line);
@@ -268,6 +347,14 @@ static int getLength(char* line, int width) {
   return ret;
 }
 
+/**
+ * @brief Get the Value object
+ *
+ * @param line
+ * @param value
+ * @param width
+ * @return int
+ */
 static int getValue(char* line, char* value, int width) {
   size_t len = strlen(line);
 
@@ -285,6 +372,14 @@ static int getValue(char* line, char* value, int width) {
   return 0;
 }
 
+/**
+ * @brief Parse DE 62
+ *
+ * @param handshake
+ * @param de62
+ * @param size
+ * @return short
+ */
 static short parseDE62(Handshake_t* handshake, const char* de62,
                        const int size) {
   const int TAG_WIDTH = 2;
@@ -342,6 +437,15 @@ static short parseDE62(Handshake_t* handshake, const char* de62,
   return 0;
 }
 
+/**
+ * @brief Get the Network Data Helper object
+ *
+ * @param responseBuf
+ * @param bufLen
+ * @param handshake
+ * @param networkManagementType
+ * @return short
+ */
 static short getNetworkDataHelper(unsigned char* responseBuf, size_t bufLen,
                                   Handshake_t* handshake,
                                   NetworkManagementType networkManagementType) {
@@ -379,6 +483,14 @@ error:
   return ret;
 }
 
+/**
+ * @brief Parse Network Data Response Helper
+ *
+ * @param handshake
+ * @param isoMsg
+ * @param responseBuf
+ * @return short
+ */
 static short parseGetNetworkDataResponseHelper(Handshake_t* handshake,
                                                IsoMsg isoMsg,
                                                unsigned char* responseBuf) {
@@ -404,6 +516,14 @@ error:
   return ret;
 }
 
+/**
+ * @brief Parse Get Key Response
+ *
+ * @param handshake
+ * @param responseBuf
+ * @param key
+ * @return short
+ */
 static short parseGetKeyResponse(Handshake_t* handshake,
                                  unsigned char* responseBuf, Key* key) {
   short ret = EXIT_FAILURE;
@@ -429,6 +549,14 @@ error:
   return ret;
 }
 
+/**
+ * @brief Parse Get Network Data Response
+ *
+ * @param handshake
+ * @param responseBuf
+ * @param networkManagementType
+ * @return short
+ */
 static short parseGetNetworkDataResponse(
     Handshake_t* handshake, unsigned char* responseBuf,
     NetworkManagementType networkManagementType) {
@@ -463,6 +591,14 @@ error:
   return ret;
 }
 
+/**
+ * @brief Get the Clear Key object
+ *
+ * @param handshake
+ * @param key
+ * @param networkManagementType
+ * @return short
+ */
 static short getClearKey(Handshake_t* handshake, Key* key,
                          NetworkManagementType networkManagementType) {
   char decryptionKey[33] = {'\0'};
@@ -492,6 +628,14 @@ static short getClearKey(Handshake_t* handshake, Key* key,
   return EXIT_SUCCESS;
 }
 
+/**
+ * @brief Get the Key object
+ *
+ * @param handshake
+ * @param key
+ * @param networkManagementType
+ * @return short
+ */
 static short getKey(Handshake_t* handshake, Key* key,
                     NetworkManagementType networkManagementType) {
   unsigned char responseBuf[0x1000] = {'\0'};
@@ -512,6 +656,13 @@ error:
   return ret;
 }
 
+/**
+ * @brief Get the Network Data object
+ *
+ * @param handshake
+ * @param networkManagementType
+ * @return short
+ */
 static short getNetworkData(Handshake_t* handshake,
                             NetworkManagementType networkManagementType) {
   unsigned char responseBuf[0x2000] = {'\0'};
@@ -530,24 +681,48 @@ error:
   return ret;
 }
 
+/**
+ * @brief Get the Master Key object
+ *
+ * @param handshake
+ * @return short
+ */
 static short getMasterKey(Handshake_t* handshake) {
   debug("%s", networkManagementTypeToString(NETWORK_MANAGEMENT_MASTER_KEY));
   return getKey(handshake, &handshake->networkManagementResponse.master,
                 NETWORK_MANAGEMENT_MASTER_KEY);
 }
 
+/**
+ * @brief Get the Session Key object
+ *
+ * @param handshake
+ * @return short
+ */
 static short getSessionKey(Handshake_t* handshake) {
   debug("%s", networkManagementTypeToString(NETWORK_MANAGEMENT_SESSION_KEY));
   return getKey(handshake, &handshake->networkManagementResponse.session,
                 NETWORK_MANAGEMENT_SESSION_KEY);
 }
 
+/**
+ * @brief Get the Pin Key object
+ *
+ * @param handshake
+ * @return short
+ */
 static short getPinKey(Handshake_t* handshake) {
   debug("%s", networkManagementTypeToString(NETWORK_MANAGEMENT_PIN_KEY));
   return getKey(handshake, &handshake->networkManagementResponse.pin,
                 NETWORK_MANAGEMENT_PIN_KEY);
 }
 
+/**
+ * @brief Get the Parameters object
+ *
+ * @param handshake
+ * @return short
+ */
 static short getParameters(Handshake_t* handshake) {
   debug("%s",
         networkManagementTypeToString(NETWORK_MANAGEMENT_PARAMETER_DOWNLOAD));
@@ -559,17 +734,34 @@ static short doCallHome(Handshake_t* handshake) {
   return getNetworkData(handshake, NETWORK_MANAGEMENT_CALL_HOME);
 }
 
+/**
+ * @brief Get the Capk object
+ *
+ * @param handshake
+ * @return short
+ */
 static short getCapk(Handshake_t* handshake) {
   debug("%s", networkManagementTypeToString(NETWORK_MANAGEMENT_CAPK_DOWNLOAD));
   return getNetworkData(handshake, NETWORK_MANAGEMENT_CAPK_DOWNLOAD);
 }
 
+/**
+ * @brief Get the Eft Total object
+ *
+ * @param handshake
+ * @return short
+ */
 static short getEftTotal(Handshake_t* handshake) {
   (void)handshake;
   debug("%s", networkManagementTypeToString(NETWORK_MANAGEMENT_UNKNOWN));
   return EXIT_SUCCESS;
 }
 
+/**
+ * @brief Bind NIBSS
+ *
+ * @param handshake_internals
+ */
 void bindNibss(Handshake_Internals* handshake_internals) {
   handshake_internals->getMasterKey = getMasterKey;
   handshake_internals->getSessionKey = getSessionKey;

@@ -10,6 +10,16 @@
  */
 #include "handshake_internals.h"
 
+/**
+ * @brief Build TAMS HTTP Request
+ *
+ * @param requestBuf
+ * @param bufLen
+ * @param handshake
+ * @param data
+ * @param path
+ * @return int
+ */
 static int buildTamsHttpRequest(char* requestBuf, size_t bufLen,
                                 Handshake_t* handshake, char* data,
                                 const char* path) {
@@ -47,6 +57,13 @@ error:
   return pos;
 }
 
+/**
+ * @brief Parse Master Key Response
+ *
+ * @param handshake
+ * @param response
+ * @return short
+ */
 static short parseMasterkeyResponse(Handshake_t* handshake, char* response) {
   ezxml_t root = NULL;
   ezxml_t masterkey = NULL;
@@ -71,6 +88,12 @@ error:
   return ret;
 }
 
+/**
+ * @brief Get the Master Key object
+ *
+ * @param handshake
+ * @return short
+ */
 static short getMasterKey(Handshake_t* handshake) {
   int len = -1;
   char requestBuf[0x1000] = {'\0'};
@@ -104,6 +127,13 @@ error:
   return ret;
 }
 
+/**
+ * @brief Parse Get Keys Response
+ *
+ * @param handshake
+ * @param response
+ * @return short
+ */
 static short parseGetKeysResponse(Handshake_t* handshake, char* response) {
   ezxml_t root = NULL, cipher = NULL;
   int ret = EXIT_FAILURE;
@@ -149,6 +179,12 @@ error:
   return ret;
 }
 
+/**
+ * @brief Get the Session Key object
+ *
+ * @param handshake
+ * @return short
+ */
 static short getSessionKey(Handshake_t* handshake) {
   int len = -1;
   char requestBuf[0x1000] = {'\0'};
@@ -182,12 +218,25 @@ error:
   return ret;
 }
 
+/**
+ * @brief Get the Pin Key object
+ *
+ * @param handshake
+ * @return short
+ */
 static short getPinKey(Handshake_t* handshake) {
   (void)handshake;
   debug("PIN");
   return EXIT_SUCCESS;
 }
 
+/**
+ * @brief Parse Get Parameters Response
+ *
+ * @param handshake
+ * @param response
+ * @return short
+ */
 static short parseGetParametersResponse(Handshake_t* handshake,
                                         char* response) {
   ezxml_t root, dateTimeTag, item;
@@ -278,6 +327,12 @@ error:
   return ret;
 }
 
+/**
+ * @brief Get the Parameters object
+ *
+ * @param handshake
+ * @return short
+ */
 static short getParameters(Handshake_t* handshake) {
   int len = -1;
   char requestBuf[0x1000] = {'\0'};
@@ -315,6 +370,12 @@ error:
   return ret;
 }
 
+/**
+ * @brief Do Call Home
+ *
+ * @param handshake
+ * @return short
+ */
 static short doCallHome(Handshake_t* handshake) {
   (void)handshake;
 
@@ -322,6 +383,13 @@ static short doCallHome(Handshake_t* handshake) {
   return EXIT_SUCCESS;
 }
 
+/**
+ * @brief Parse Get EFT Total Response
+ *
+ * @param handshake
+ * @param response
+ * @return short
+ */
 static short parseGetEftTotalResponse(Handshake_t* handshake, char* response) {
   ezxml_t root, item;
   int ret = EXIT_FAILURE;
@@ -345,6 +413,12 @@ error:
   return ret;
 }
 
+/**
+ * @brief Get the Eft Total object
+ *
+ * @param handshake
+ * @return short
+ */
 static short getEftTotal(Handshake_t* handshake) {
   int len = -1;
   char requestBuf[0x1000] = {'\0'};
@@ -384,6 +458,12 @@ error:
   return ret;
 }
 
+/**
+ * @brief Get the Capk object
+ *
+ * @param handshake
+ * @return short
+ */
 static short getCapk(Handshake_t* handshake) {
   (void)handshake;
 
@@ -391,6 +471,11 @@ static short getCapk(Handshake_t* handshake) {
   return EXIT_SUCCESS;
 }
 
+/**
+ * @brief Bind TAMS
+ *
+ * @param handshake_internals
+ */
 void bindTams(Handshake_Internals* handshake_internals) {
   handshake_internals->getMasterKey = getMasterKey;
   handshake_internals->getSessionKey = getSessionKey;

@@ -12,6 +12,12 @@
 
 #include "handshake_internals.h"
 
+/**
+ * @brief check that data needed to map device is set
+ *
+ * @param handshake
+ * @return short
+ */
 static short checkMapDeviceData(Handshake_t* handshake) {
   return handshake->appInfo.name[0] && handshake->appInfo.version[0] &&
          handshake->deviceInfo.model[0] && handshake->deviceInfo.posUid[0] &&
@@ -19,31 +25,45 @@ static short checkMapDeviceData(Handshake_t* handshake) {
          handshake->mapDeviceHost.port != 0;
 }
 
+/**
+ * @brief `comSendReceive` must be set
+ * atleast mapdDeviceHost must be set when Map device is set to true
+ * handshakeHost is optional when Map device is true, mandatory otherwise
+ *
+ * @param handshake
+ * @return short
+ */
+static short checkMandatoryFields(Handshake_t* handshake) {
+  return handshake->comSendReceive &&
+         ((handshake->mapDevice == HANDSHAKE_MAP_DEVICE_TRUE &&
+           checkMapDeviceData(handshake)) ||
+          (handshake->mapDevice == HANDSHAKE_MAP_DEVICE_FALSE &&
+           handshake->handshakeHost.hostUrl[0] &&
+           handshake->handshakeHost.port));
+}
+
+/**
+ * @brief validate set fields in Handshake object
+ *
+ * @param handshake
+ * @return short
+ */
 static short validateHandshakeData(Handshake_t* handshake) {
-  if (!handshake->comSendReceive ||
-      (!((handshake->mapDeviceHost.hostUrl[0] &&
-          handshake->mapDevice == HANDSHAKE_MAP_DEVICE_TRUE) ||
-         (handshake->handshakeHost.hostUrl[0] &&
-          handshake->handshakeHost.port)))) {
-    log_err("`comSendReceive` or `hosts` not set");
-    snprintf(handshake->error.message, sizeof(handshake->error.message) - 1,
-             "`comSendReceive` or `hosts` not set");
+  if (!checkMandatoryFields(handshake)) {
+    log_err(
+        "`comSendReceive` or `hosts` or `data needed to map device` not set");
+    snprintf(
+        handshake->error.message, sizeof(handshake->error.message) - 1,
+        "`comSendReceive` or `hosts` or `data needed to map device` not set");
     return EXIT_FAILURE;
   }
 
+  // tid must be set when map device is false
   if (handshake->mapDevice == HANDSHAKE_MAP_DEVICE_FALSE &&
       !(handshake->tid[0])) {
     log_err("TID can't be empty when `mapDevice` is false");
     snprintf(handshake->error.message, sizeof(handshake->error.message) - 1,
              "TID can't be empty when `mapDevice` is false");
-    return EXIT_FAILURE;
-  }
-
-  if (handshake->mapDevice == HANDSHAKE_MAP_DEVICE_TRUE &&
-      !checkMapDeviceData(handshake)) {
-    log_err("Map Device `data` or `host` not set");
-    snprintf(handshake->error.message, sizeof(handshake->error.message) - 1,
-             "Map Device `data` or `mapDeviceHost` not set");
     return EXIT_FAILURE;
   }
 
@@ -59,6 +79,12 @@ static short validateHandshakeData(Handshake_t* handshake) {
   return EXIT_SUCCESS;
 }
 
+/**
+ * @brief Initialize Handshake object
+ *
+ * @param handshake
+ * @param handshakeInternals
+ */
 static void Handshake_Init(Handshake_t* handshake,
                            Handshake_Internals* handshakeInternals) {
   handshake->error.code = ERROR_CODE_HANDSHAKE_INIT_ERROR;
@@ -66,15 +92,18 @@ static void Handshake_Init(Handshake_t* handshake,
   check(validateHandshakeData(handshake) == EXIT_SUCCESS,
         "Error Validating `handshake`");
 
+  // Handshake operations not set so perform all operations
   if (handshake->operations == HANDSHAKE_OPERATIONS_NONE) {
     handshake->operations = HANDSHAKE_OPERATIONS_ALL;
   }
+  // If all operations should be performed, clear response objects
   if (handshake->operations == HANDSHAKE_OPERATIONS_ALL) {
     memset(&handshake->tamsResponse, '\0', sizeof(TAMSResponse));
     memset(&handshake->networkManagementResponse, '\0',
            sizeof(NetworkManagementResponse));
   }
 
+  // bind platform functions
   if (handshake->platform == PLATFORM_NIBSS) {
     bindNibss(handshakeInternals);
   } else if (handshake->platform == PLATFORM_TAMS) {
@@ -87,6 +116,12 @@ error:
   return;
 }
 
+/**
+ * @brief Get the Handshake Host Helper object
+ *
+ * @param handshake
+ * @param server
+ */
 static void getHandshakeHostHelper(Handshake_t* handshake,
                                    PrivatePublicServer* server) {
   SimType simType = handshake->simInfo.simType;
@@ -102,6 +137,12 @@ static void getHandshakeHostHelper(Handshake_t* handshake,
   }
 }
 
+/**
+ * @brief Get the Handshake Host object
+ *
+ * @param handshake
+ * @param middlewareServer
+ */
 static void getHandshakeHost(Handshake_t* handshake,
                              MiddlewareServer* middlewareServer) {
   ConnectionType connectionType =
@@ -114,6 +155,11 @@ static void getHandshakeHost(Handshake_t* handshake,
   }
 }
 
+/**
+ * @brief Get Host needed for handshake
+ *
+ * @param handshake
+ */
 static void Handshake_GetHosts(Handshake_t* handshake) {
   MiddlewareServerType middlewareServerType =
       handshake->tamsResponse.servers.middlewareServerType;
@@ -162,6 +208,12 @@ static void Handshake_GetHosts(Handshake_t* handshake) {
   }
 }
 
+/**
+ * @brief Run handshake operations
+ *
+ * @param handshake
+ * @param handshakeInternals
+ */
 static void Handshake_Run(Handshake_t* handshake,
                           Handshake_Internals* handshakeInternals) {
   handshake->error.code = ERROR_CODE_HANDSHAKE_RUN_ERROR;
@@ -201,6 +253,11 @@ error:
   return;
 }
 
+/**
+ * @brief Entry point to handshake library
+ *
+ * @param handshake
+ */
 void Handshake(Handshake_t* handshake) {
   Handshake_Internals handshakeInternals;
 
