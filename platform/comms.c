@@ -15,6 +15,8 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "../dbg.h"
+
 #ifdef ITEX_OPENSSL
 #include <openssl/ssl.h>
 
@@ -40,16 +42,16 @@ static void showSslCerts(SSL* ssl) {
   cert = SSL_get_peer_certificate(ssl); /* get the server's certificate */
   if (cert != NULL) {
     char* line;
-    printf("Server certificates:\n");
+    debug("Server certificates:");
     line = X509_NAME_oneline(X509_get_subject_name(cert), 0, 0);
-    printf("Subject: %s\n", line);
+    debug("Subject: %s", line);
     free(line); /* free the malloc'ed string */
     line = X509_NAME_oneline(X509_get_issuer_name(cert), 0, 0);
-    printf("Issuer: %s\n", line);
+    debug("Issuer: %s", line);
     free(line);      /* free the malloc'ed string */
     X509_free(cert); /* free the malloc'ed certificate copy */
   } else {
-    printf("No certificates.\n");
+    debug("No certificates.");
   }
 }
 
@@ -85,20 +87,20 @@ static int sslRead(SSL* sslHandle, unsigned char* buffer, int readSize,
     switch (err) {
       case SSL_ERROR_NONE: {
         // no real error, just try again...
-        printf("SSL_ERROR_NONE %i\n", count);
+        log_err("SSL_ERROR_NONE %i", count);
         continue;
       }
 
       case SSL_ERROR_ZERO_RETURN: {
         // peer disconnected...
-        printf("SSL_ERROR_ZERO_RETURN %i\n", count);
+        log_err("SSL_ERROR_ZERO_RETURN %i", count);
         break;
       }
 
       case SSL_ERROR_WANT_READ: {
         // no data available right now, wait a few seconds in case
         // new data arrives...
-        printf("SSL_ERROR_WANT_READ %i\n", count);
+        log_err("SSL_ERROR_WANT_READ %i", count);
 
         int sock = SSL_get_rfd(sslHandle);
         FD_ZERO(&fds);
@@ -120,7 +122,7 @@ static int sslRead(SSL* sslHandle, unsigned char* buffer, int readSize,
       }
 
       default: {
-        printf("error %i:%i\n", received, err);
+        log_err("error %i:%i", received, err);
         break;
       }
     }
@@ -141,7 +143,6 @@ int comSendReceive(unsigned char* response, const size_t rSize,
   struct sockaddr_in serv_addr;
   short ret = -1;
   char resolvedIp[32] = {'\0'};
-  (void)connectionType;
 
   SSL* ssl;
 
@@ -149,7 +150,7 @@ int comSendReceive(unsigned char* response, const size_t rSize,
   timeout.tv_usec = 0;
 
   if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-    printf("\n Error : Could not create socket \n");
+    log_err(" Error : Could not create socket ");
     return -1;
   }
 
@@ -160,44 +161,55 @@ int comSendReceive(unsigned char* response, const size_t rSize,
 
   resolveHost(url, resolvedIp);
   if (inet_pton(AF_INET, resolvedIp, &serv_addr.sin_addr) <= 0) {
-    printf("\n inet_pton error occured\n");
+    log_err(" inet_pton error occured");
     goto clean_exit;
   }
 
   if (connect(sockfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0) {
-    printf("\n Error : Connect Failed \n");
+    log_err(" Error : Connect Failed ");
     goto clean_exit;
   }
 
   if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout,
                  sizeof(timeout)) < 0) {
-    printf("\n Error : Set Recv Timeout Failed \n");
+    log_err(" Error : Set Recv Timeout Failed ");
   }
 
-  ssl = SSL_new(middlewareContext());
-  if (ssl == NULL) {
-    goto clean_exit;
-  }
+  if (connectionType == CONNECTION_TYPE_SSL) {
+    ssl = SSL_new(middlewareContext());
+    if (ssl == NULL) {
+      goto clean_exit;
+    }
 
-  SSL_set_fd(ssl, sockfd);
-  if (SSL_connect(ssl) <= 0) {
-    fprintf(stderr, "SSl conn.\n");
-    goto clean_ssl;
-  }
-  showSslCerts(ssl);
+    SSL_set_fd(ssl, sockfd);
+    if (SSL_connect(ssl) <= 0) {
+      log_err("SSl conn.");
+      goto clean_ssl;
+    }
+    showSslCerts(ssl);
 
-  n = SSL_write(ssl, request, len);
-  if ((size_t)n != len) {
-    goto clean_ssl;
-  }
+    n = SSL_write(ssl, request, len);
+    if ((size_t)n != len) {
+      goto clean_ssl;
+    }
 
-  n = sslRead(ssl, response, rSize - 1, recevSentinel, endTag);
+    n = sslRead(ssl, response, rSize - 1, recevSentinel, endTag);
+  } else if (connectionType == CONNECTION_TYPE_PLAIN) {
+    n = write(sockfd, request, len);
+    if ((size_t)n != len) {
+      goto clean_exit;
+    }
+
+    n = read(sockfd, response, rSize - 1);
+  }
 
   ret = n > 0 ? n : 0;
 
 clean_ssl:
-  SSL_shutdown(ssl);
-  SSL_free(ssl);
+  if (connectionType == CONNECTION_TYPE_SSL) {
+    SSL_shutdown(ssl);
+    SSL_free(ssl);
+  }
 clean_exit:
   close(sockfd);
   return ret;
