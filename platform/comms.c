@@ -20,7 +20,8 @@
 #ifdef ITEX_OPENSSL
 #include <openssl/ssl.h>
 
-static int resolveHost(char* hostname, char* ip) {
+__attribute__((no_sanitize("undefined"))) static int resolveHost(
+    const char* hostname, char* ip) {
   struct hostent* hent;
   struct in_addr** addr_list;
   int i;
