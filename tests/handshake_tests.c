@@ -571,6 +571,10 @@ const char* test_HandshakeTamsAllMapDeviceTrue() {
   Handshake(&handshake);
   mu_assert(handshake.error.code == ERROR_CODE_NO_ERROR, "%s",
             handshake.error.message);
+  strcpy((char*)g_handshake.networkManagementResponse.master.key,
+         (char*)handshake.networkManagementResponse.master.key);
+  strcpy((char*)g_handshake.networkManagementResponse.session.key,
+         (char*)handshake.networkManagementResponse.session.key);
   logNetworkManagementResponse(&handshake.networkManagementResponse);
 
   return NULL;
@@ -599,6 +603,10 @@ const char* test_HandshakeTamsAllMapDeviceFalse() {
   Handshake(&handshake);
   mu_assert(handshake.error.code == ERROR_CODE_NO_ERROR, "%s",
             handshake.error.message);
+  strcpy((char*)g_handshake.networkManagementResponse.master.key,
+         (char*)handshake.networkManagementResponse.master.key);
+  strcpy((char*)g_handshake.networkManagementResponse.session.key,
+         (char*)handshake.networkManagementResponse.session.key);
   logNetworkManagementResponse(&handshake.networkManagementResponse);
 
   return NULL;
@@ -629,6 +637,8 @@ const char* test_HandshakeTamsMasterMapDeviceFalse() {
             handshake.error.message);
   strcpy((char*)g_handshake.networkManagementResponse.master.key,
          (char*)handshake.networkManagementResponse.master.key);
+  strcpy((char*)g_handshake.networkManagementResponse.session.key,
+         (char*)handshake.networkManagementResponse.session.key);
   logNetworkManagementResponse(&handshake.networkManagementResponse);
 
   return NULL;
@@ -732,6 +742,88 @@ const char* test_HandshakeTamsEftTotalMapDeviceFalse() {
   return NULL;
 }
 
+// Custom Tests
+// -------------------------------------------------------------
+const char* test_HandshakeNibssAllMapDeviceFalse_Ogunwole() {
+  Handshake_t handshake = HANDSHAKE_INIT_DATA;
+
+  handshake.comSendReceive = comSendReceive;
+  // not required
+  handshake.comSentinel = isResponseSentinel;
+  handshake.getCallHomeData = getState;
+
+  handshake.mapDevice = HANDSHAKE_MAP_DEVICE_FALSE;
+  handshake.platform = PLATFORM_NIBSS;
+  handshake.ptadKey = PTAD_KEY_NIBSS;
+
+  strcpy(handshake.tid, "20330205");
+
+  // not required
+  strcpy(handshake.appInfo.name, "Tamslite");
+  strcpy(handshake.appInfo.version, "0.0.1");
+
+  strcpy(handshake.deviceInfo.model, "LaptopPort");
+  strcpy(handshake.deviceInfo.posUid, "346228245");
+
+  strcpy(handshake.simInfo.imsi, "621301234567890");
+  handshake.simInfo.simType = SIM_TYPE_PUBLIC;
+
+  strcpy(handshake.handshakeHost.hostUrl, "16.170.207.247");
+  handshake.handshakeHost.port = 5004;
+  handshake.handshakeHost.connectionType = CONNECTION_TYPE_PLAIN;
+  // needed if call home host is different from handshake host
+  strcpy(handshake.callHomeHost.hostUrl, "16.170.207.247");
+  handshake.callHomeHost.port = 5004;
+  handshake.callHomeHost.connectionType = CONNECTION_TYPE_PLAIN;
+
+  Handshake(&handshake);
+  mu_assert(handshake.error.code == ERROR_CODE_NO_ERROR, "%s",
+            handshake.error.message);
+  logTamsResponse(&handshake.tamsResponse);
+  logNetworkManagementResponse(&handshake.networkManagementResponse);
+
+  return NULL;
+}
+
+const char* test_HandshakeNibssAllMapDeviceFalse2058HIW1() {
+  Handshake_t handshake = HANDSHAKE_INIT_DATA;
+
+  handshake.comSendReceive = comSendReceive;
+  // not required
+  handshake.comSentinel = isResponseSentinel;
+  handshake.getCallHomeData = getState;
+
+  handshake.mapDevice = HANDSHAKE_MAP_DEVICE_FALSE;
+  handshake.platform = PLATFORM_NIBSS;
+  handshake.ptadKey = PTAD_KEY_POSVAS;
+
+  strcpy(handshake.appInfo.name, "Tamslite");
+  strcpy(handshake.appInfo.version, "0.0.1");
+
+  strcpy(handshake.deviceInfo.model, "LaptopPort");
+  strcpy(handshake.deviceInfo.posUid, "2058HIW1");
+  strcpy(handshake.tid, "2058HIW1");
+
+  strcpy(handshake.simInfo.imsi, "621301234567890");
+  handshake.simInfo.simType = SIM_TYPE_PUBLIC;
+
+  strcpy(handshake.mapDeviceHost.hostUrl, "basehuge.itexapp.com");
+  handshake.mapDeviceHost.port = 443;
+  handshake.mapDeviceHost.connectionType = CONNECTION_TYPE_SSL;
+  strcpy(handshake.handshakeHost.hostUrl, "197.253.19.75");
+  handshake.handshakeHost.port = 5003;
+  handshake.handshakeHost.connectionType = CONNECTION_TYPE_SSL;
+
+  Handshake(&handshake);
+  mu_assert(handshake.error.code == ERROR_CODE_NO_ERROR, "%s",
+            handshake.error.message);
+  logTamsResponse(&handshake.tamsResponse);
+  logNetworkManagementResponse(&handshake.networkManagementResponse);
+
+  return NULL;
+}
+// -------------------------------------------------------------
+
 const char* allTests() {
   mu_suite_start();
 
@@ -762,6 +854,10 @@ const char* allTests() {
   mu_run_test(test_HandshakeTamsSessionMapDeviceFalse);
   mu_run_test(test_HandshakeTamsParametersMapDeviceFalse);
   mu_run_test(test_HandshakeTamsEftTotalMapDeviceFalse);
+
+  // Custom tests
+  // mu_run_test(test_HandshakeNibssAllMapDeviceFalse_Ogunwole);
+  // mu_run_test(test_HandshakeNibssAllMapDeviceFalse2058HIW1);
 
   return NULL;
 }
