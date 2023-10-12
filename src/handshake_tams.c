@@ -476,7 +476,7 @@ static short getCapk(Handshake_t* handshake) {
  *
  * @param handshake_internals
  */
-void bindTams(Handshake_Internals* handshake_internals) {
+void bindTams(HandshakeOperations* handshake_internals) {
   handshake_internals->getMasterKey = getMasterKey;
   handshake_internals->getSessionKey = getSessionKey;
   handshake_internals->getPinKey = getPinKey;

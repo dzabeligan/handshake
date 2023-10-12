@@ -3,8 +3,8 @@
 #include <string.h>
 
 #include "../dbg.h"
-#include "../inc/handshake.h"
 #include "../platform/platform.h"
+#include "../src/handshake.h"
 #include "minunit.h"
 
 Handshake_t g_handshake = HANDSHAKE_INIT_DATA;

@@ -90,10 +90,8 @@ static short validateHandshakeData(Handshake_t* handshake) {
  * @brief Initializes a Handshake_t struct.
  *
  * @param handshake A pointer to the Handshake_t struct to be initialized.
- * @param handshakeInternals
  */
-static void Handshake_Init(Handshake_t* handshake,
-                           Handshake_Internals* handshakeInternals) {
+static void Handshake_Init(Handshake_t* handshake) {
   handshake->error.code = ERROR_CODE_HANDSHAKE_INIT_ERROR;
 
   check(validateHandshakeData(handshake) == EXIT_SUCCESS,
@@ -212,48 +210,56 @@ static void Handshake_GetHosts(Handshake_t* handshake) {
 }
 
 /**
+ * Binds the platform to the Handshake internals.
+ *
+ * @param handshakeInternals The Handshake internals to bind the platform to.
+ */
+static void bindPlatform(HandshakeOperations* handshakeInternals,
+                         Platform platform) {
+  if (platform == PLATFORM_NIBSS) {
+    bindNibss(handshakeInternals);
+  } else if (platform == PLATFORM_TAMS) {
+    bindTams(handshakeInternals);
+  }
+}
+
+/**
  * @brief Runs the handshake process.
  *
  * @param handshake A pointer to the Handshake_t struct.
- * @param handshakeInternals
  */
-static void Handshake_Run(Handshake_t* handshake,
-                          Handshake_Internals* handshakeInternals) {
+static void Handshake_Run(Handshake_t* handshake) {
   handshake->error.code = ERROR_CODE_HANDSHAKE_RUN_ERROR;
+  HandshakeOperations handshakeInternals;
 
-  // bind platform functions
-  if (handshake->platform == PLATFORM_NIBSS) {
-    bindNibss(handshakeInternals);
-  } else if (handshake->platform == PLATFORM_TAMS) {
-    bindTams(handshakeInternals);
-  }
+  bindPlatform(&handshakeInternals, handshake->platform);
 
   if (handshake->operations & HANDSHAKE_OPERATIONS_MASTER_KEY) {
-    check(handshakeInternals->getMasterKey(handshake) == EXIT_SUCCESS,
+    check(handshakeInternals.getMasterKey(handshake) == EXIT_SUCCESS,
           "Error Getting Master Key");
   }
   if (handshake->operations & HANDSHAKE_OPERATIONS_SESSION_KEY) {
-    check(handshakeInternals->getSessionKey(handshake) == EXIT_SUCCESS,
+    check(handshakeInternals.getSessionKey(handshake) == EXIT_SUCCESS,
           "Error Getting Session Key");
   }
   if (handshake->operations & HANDSHAKE_OPERATIONS_PIN_KEY) {
-    check(handshakeInternals->getPinKey(handshake) == EXIT_SUCCESS,
+    check(handshakeInternals.getPinKey(handshake) == EXIT_SUCCESS,
           "Error Getting PIN Key");
   }
   if (handshake->operations & HANDSHAKE_OPERATIONS_PARAMETER) {
-    check(handshakeInternals->getParameters(handshake) == EXIT_SUCCESS,
+    check(handshakeInternals.getParameters(handshake) == EXIT_SUCCESS,
           "Error Getting Parameters");
   }
   if (handshake->operations & HANDSHAKE_OPERATIONS_CALLHOME) {
-    check(handshakeInternals->doCallHome(handshake) == EXIT_SUCCESS,
+    check(handshakeInternals.doCallHome(handshake) == EXIT_SUCCESS,
           "Error Doing Call Home");
   }
   if (handshake->operations & HANDSHAKE_OPERATIONS_EFT_TOTAL) {
-    check(handshakeInternals->getEftTotal(handshake) == EXIT_SUCCESS,
+    check(handshakeInternals.getEftTotal(handshake) == EXIT_SUCCESS,
           "Error Getting EFT Total");
   }
   if (handshake->operations & HANDSHAKE_OPERATIONS_CAPK) {
-    check(handshakeInternals->getCapk(handshake) == EXIT_SUCCESS,
+    check(handshakeInternals.getCapk(handshake) == EXIT_SUCCESS,
           "Error Getting CAPK");
   }
 
@@ -270,9 +276,7 @@ error:
  * handshake.
  */
 void Handshake(Handshake_t* handshake) {
-  Handshake_Internals handshakeInternals;
-
-  Handshake_Init(handshake, &handshakeInternals);
+  Handshake_Init(handshake);
   check(handshake->error.code == ERROR_CODE_NO_ERROR, "Handshake Init Error");
 
   if (handshake->mapDevice == HANDSHAKE_MAP_DEVICE_TRUE) {
@@ -287,7 +291,7 @@ void Handshake(Handshake_t* handshake) {
   debug("Callhome host: %s:%d", handshake->callHomeHost.hostUrl,
         handshake->callHomeHost.port);
 
-  Handshake_Run(handshake, &handshakeInternals);
+  Handshake_Run(handshake);
 error:
   return;
 }

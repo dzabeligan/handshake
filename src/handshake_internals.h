@@ -20,8 +20,8 @@ extern "C" {
 #include "../dbg.h"
 #include "../des/des.h"
 #include "../ezxml/ezxml.h"
-#include "../inc/handshake.h"
 #include "../platform/platform.h"
+#include "handshake.h"
 
 /**
  * Function pointer type for a function that retrieves network management data
@@ -34,7 +34,7 @@ typedef short (*GetNetworkManagementData)(Handshake_t* handshake);
  * @brief Struct containing function pointers for retrieving various network
  * management data.
  */
-typedef struct Handshake_Internals {
+typedef struct HandshakeOperations {
   /**< Function pointer for retrieving the master key. */
   GetNetworkManagementData getMasterKey;
   /**< Function pointer for retrieving the session key. */
@@ -49,10 +49,10 @@ typedef struct Handshake_Internals {
   GetNetworkManagementData getCapk;
   /**< Function pointer for retrieving the EFT total. */
   GetNetworkManagementData getEftTotal;
-} Handshake_Internals;
+} HandshakeOperations;
 
-void bindNibss(Handshake_Internals* handshakeInternals);
-void bindTams(Handshake_Internals* handshakeInternals);
+void bindNibss(HandshakeOperations* handshakeInternals);
+void bindTams(HandshakeOperations* handshakeInternals);
 
 void Handshake_MapDevice(Handshake_t* handshake);
 

@@ -653,6 +653,13 @@ static short getKey(Handshake_t* handshake, Key* key,
 
   ret = EXIT_SUCCESS;
 error:
+  if (ret != EXIT_SUCCESS) {
+    log_err("Error getting key (%s)",
+            networkManagementTypeToString(networkManagementType));
+    snprintf(handshake->error.message, sizeof(handshake->error.message) - 1,
+             "Error getting key (%s)",
+             networkManagementTypeToString(networkManagementType));
+  }
   return ret;
 }
 
@@ -678,6 +685,13 @@ static short getNetworkData(Handshake_t* handshake,
 
   ret = EXIT_SUCCESS;
 error:
+  if (ret != EXIT_SUCCESS) {
+    log_err("Error getting network data (%s)",
+            networkManagementTypeToString(networkManagementType));
+    snprintf(handshake->error.message, sizeof(handshake->error.message) - 1,
+             "Error getting network data (%s)",
+             networkManagementTypeToString(networkManagementType));
+  }
   return ret;
 }
 
@@ -762,7 +776,7 @@ static short getEftTotal(Handshake_t* handshake) {
  *
  * @param handshake_internals
  */
-void bindNibss(Handshake_Internals* handshake_internals) {
+void bindNibss(HandshakeOperations* handshake_internals) {
   handshake_internals->getMasterKey = getMasterKey;
   handshake_internals->getSessionKey = getSessionKey;
   handshake_internals->getPinKey = getPinKey;

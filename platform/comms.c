@@ -88,13 +88,13 @@ static int sslRead(SSL* sslHandle, unsigned char* buffer, int readSize,
     switch (err) {
       case SSL_ERROR_NONE: {
         // no real error, just try again...
-        log_err("SSL_ERROR_NONE %i", count);
+        debug("SSL_ERROR_NONE %i", count);
         continue;
       }
 
       case SSL_ERROR_ZERO_RETURN: {
         // peer disconnected...
-        log_err("SSL_ERROR_ZERO_RETURN %i", count);
+        debug("SSL_ERROR_ZERO_RETURN %i", count);
         break;
       }
 
