@@ -1313,6 +1313,7 @@ typedef struct Device {
   int activeSimSlot;
   char imsi[16];
 
+  SimType simType;
   CommMode commMode;
 
   Apn apn;
