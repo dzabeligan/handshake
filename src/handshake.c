@@ -13,10 +13,11 @@
 #include "handshake_internals.h"
 
 /**
- * @brief check that data needed to map device is set
+ * @brief Check if the device data in the handshake matches the expected format.
  *
- * @param handshake
- * @return short
+ * @param handshake The handshake object containing the device data to be
+ * checked.
+ * @return A short indicating whether the device data is valid (1) or not (0).
  */
 static short checkMapDeviceData(Handshake_t* handshake) {
   return handshake->appInfo.name[0] && handshake->appInfo.version[0] &&
@@ -26,12 +27,16 @@ static short checkMapDeviceData(Handshake_t* handshake) {
 }
 
 /**
- * @brief `comSendReceive` must be set
+ * @brief Checks if all mandatory fields in the Handshake_t struct are
+ * populated.
+ *
+ * `comSendReceive` must be set
  * atleast mapdDeviceHost must be set when Map device is set to true
  * handshakeHost is optional when Map device is true, mandatory otherwise
  *
- * @param handshake
- * @return short
+ * @param handshake Pointer to the Handshake_t struct to be checked.
+ * @return Returns a short indicating whether all mandatory fields are populated
+ * (1) or not (0).
  */
 static short checkMandatoryFields(Handshake_t* handshake) {
   return handshake->comSendReceive &&
@@ -43,10 +48,12 @@ static short checkMandatoryFields(Handshake_t* handshake) {
 }
 
 /**
- * @brief validate set fields in Handshake object
+ * @brief Validates the handshake data.
  *
- * @param handshake
- * @return short
+ * @param handshake A pointer to the Handshake_t struct containing the handshake
+ * data to be validated.
+ * @return A short indicating whether the validation was successful
+ * (EXIT_SUCCESS) or not (EXIT_FAILURE).
  */
 static short validateHandshakeData(Handshake_t* handshake) {
   if (!checkMandatoryFields(handshake)) {
@@ -80,9 +87,9 @@ static short validateHandshakeData(Handshake_t* handshake) {
 }
 
 /**
- * @brief Initialize Handshake object
+ * @brief Initializes a Handshake_t struct.
  *
- * @param handshake
+ * @param handshake A pointer to the Handshake_t struct to be initialized.
  * @param handshakeInternals
  */
 static void Handshake_Init(Handshake_t* handshake,
@@ -110,9 +117,11 @@ error:
 }
 
 /**
- * @brief Get the Handshake Host Helper object
+ * @brief A helper function to get the handshake host.
  *
- * @param handshake
+ * This function is used internally to retrieve the handshake host.
+ *
+ * @param handshake A pointer to the Handshake_t struct.
  * @param server
  */
 static void getHandshakeHostHelper(Handshake_t* handshake,
@@ -131,9 +140,10 @@ static void getHandshakeHostHelper(Handshake_t* handshake,
 }
 
 /**
- * @brief Get the Handshake Host object
+ * @brief Retrieves the handshake host from the given Handshake_t struct.
  *
- * @param handshake
+ * @param handshake A pointer to the Handshake_t struct to retrieve the host
+ * from.
  * @param middlewareServer
  */
 static void getHandshakeHost(Handshake_t* handshake,
@@ -149,9 +159,9 @@ static void getHandshakeHost(Handshake_t* handshake,
 }
 
 /**
- * @brief Get Host needed for handshake
+ * @brief Retrieves the hosts for the Handshake_t object.
  *
- * @param handshake
+ * @param handshake The Handshake_t object to retrieve hosts from.
  */
 static void Handshake_GetHosts(Handshake_t* handshake) {
   MiddlewareServerType middlewareServerType =
@@ -202,9 +212,9 @@ static void Handshake_GetHosts(Handshake_t* handshake) {
 }
 
 /**
- * @brief Run handshake operations
+ * @brief Runs the handshake process.
  *
- * @param handshake
+ * @param handshake A pointer to the Handshake_t struct.
  * @param handshakeInternals
  */
 static void Handshake_Run(Handshake_t* handshake,
@@ -254,9 +264,10 @@ error:
 }
 
 /**
- * @brief Entry point to handshake library
+ * @brief Performs a handshake operation using the provided Handshake_t struct.
  *
- * @param handshake
+ * @param handshake A pointer to the Handshake_t struct to use for the
+ * handshake.
  */
 void Handshake(Handshake_t* handshake) {
   Handshake_Internals handshakeInternals;

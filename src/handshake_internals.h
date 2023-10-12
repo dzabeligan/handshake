@@ -24,29 +24,30 @@ extern "C" {
 #include "../platform/platform.h"
 
 /**
- * @brief Function pointer for Network Management operations
- *
+ * Function pointer type for a function that retrieves network management data
+ * for a Handshake_t object. The function should take a pointer to a Handshake_t
+ * object as its argument and return a short integer.
  */
 typedef short (*GetNetworkManagementData)(Handshake_t* handshake);
 
 /**
- * @brief Data structure for internal objects
- * @getMasterKey: function pointer to get master key
- * @getSessionKey: function pointer to get session key
- * @getPinKey: function pointer to get pin key
- * @getParameters: function pointer to get parameters
- * @doCallHome: function pointer to do call home
- * @getCapk: function pointer to get capk
- * @getEftTotal: function pointer to get eft total
- *
+ * @brief Struct containing function pointers for retrieving various network
+ * management data.
  */
 typedef struct Handshake_Internals {
+  /**< Function pointer for retrieving the master key. */
   GetNetworkManagementData getMasterKey;
+  /**< Function pointer for retrieving the session key. */
   GetNetworkManagementData getSessionKey;
+  /**< Function pointer for retrieving the PIN key. */
   GetNetworkManagementData getPinKey;
+  /**< Function pointer for retrieving the network parameters. */
   GetNetworkManagementData getParameters;
+  /**< Function pointer for performing a call home operation. */
   GetNetworkManagementData doCallHome;
+  /**< Function pointer for retrieving the CAPK. */
   GetNetworkManagementData getCapk;
+  /**< Function pointer for retrieving the EFT total. */
   GetNetworkManagementData getEftTotal;
 } Handshake_Internals;
 
