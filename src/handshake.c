@@ -98,16 +98,9 @@ static void Handshake_Init(Handshake_t* handshake,
   }
   // If all operations should be performed, clear response objects
   if (handshake->operations == HANDSHAKE_OPERATIONS_ALL) {
-    memset(&handshake->tamsResponse, '\0', sizeof(TAMSResponse));
+    memset(&handshake->tamsResponse, '\0', sizeof(handshake->tamsResponse));
     memset(&handshake->networkManagementResponse, '\0',
-           sizeof(NetworkManagementResponse));
-  }
-
-  // bind platform functions
-  if (handshake->platform == PLATFORM_NIBSS) {
-    bindNibss(handshakeInternals);
-  } else if (handshake->platform == PLATFORM_TAMS) {
-    bindTams(handshakeInternals);
+           sizeof(handshake->networkManagementResponse));
   }
 
   handshake->error.code = ERROR_CODE_NO_ERROR;
@@ -217,6 +210,13 @@ static void Handshake_GetHosts(Handshake_t* handshake) {
 static void Handshake_Run(Handshake_t* handshake,
                           Handshake_Internals* handshakeInternals) {
   handshake->error.code = ERROR_CODE_HANDSHAKE_RUN_ERROR;
+
+  // bind platform functions
+  if (handshake->platform == PLATFORM_NIBSS) {
+    bindNibss(handshakeInternals);
+  } else if (handshake->platform == PLATFORM_TAMS) {
+    bindTams(handshakeInternals);
+  }
 
   if (handshake->operations & HANDSHAKE_OPERATIONS_MASTER_KEY) {
     check(handshakeInternals->getMasterKey(handshake) == EXIT_SUCCESS,

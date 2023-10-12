@@ -509,7 +509,7 @@ static short parseGetNetworkDataResponseHelper(Handshake_t* handshake,
       "%s", getMessage(isoMsg));
 
   check(isApprovedResponse(handshake->networkManagementResponse.responseCode),
-        "Not Arroved Response");
+        "Not Approved Response");
 
   ret = EXIT_SUCCESS;
 error:
