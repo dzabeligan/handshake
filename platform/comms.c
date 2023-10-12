@@ -134,11 +134,9 @@ static int sslRead(SSL* sslHandle, unsigned char* buffer, int readSize,
   return totalReceived;
 }
 
-int comSendReceive(unsigned char* response, const size_t rSize,
-                   const unsigned char* request, const size_t len,
-                   const char* url, const int port,
-                   ConnectionType connectionType,
-                   const ComSentinel recevSentinel, const char* endTag) {
+int comSendReceive(NetworkBuffer* response, NetworkBuffer* request, Host* host,
+                   int receiveTimeoutms, const ComSentinel recevSentinel,
+                   const char* endTag) {
   int sockfd = 0, n = 0;
   struct timeval timeout;
   struct sockaddr_in serv_addr;
@@ -158,9 +156,9 @@ int comSendReceive(unsigned char* response, const size_t rSize,
   memset(&serv_addr, '0', sizeof(serv_addr));
 
   serv_addr.sin_family = AF_INET;
-  serv_addr.sin_port = htons(port);
+  serv_addr.sin_port = htons(host->port);
 
-  resolveHost(url, resolvedIp);
+  resolveHost(host->url, resolvedIp);
   if (inet_pton(AF_INET, resolvedIp, &serv_addr.sin_addr) <= 0) {
     log_err(" inet_pton error occured");
     goto clean_exit;
@@ -176,7 +174,7 @@ int comSendReceive(unsigned char* response, const size_t rSize,
     log_err(" Error : Set Recv Timeout Failed ");
   }
 
-  if (connectionType == CONNECTION_TYPE_SSL) {
+  if (host->connectionType == CONNECTION_TYPE_SSL) {
     ssl = SSL_new(middlewareContext());
     if (ssl == NULL) {
       goto clean_exit;
@@ -189,25 +187,26 @@ int comSendReceive(unsigned char* response, const size_t rSize,
     }
     showSslCerts(ssl);
 
-    n = SSL_write(ssl, request, len);
-    if ((size_t)n != len) {
+    n = SSL_write(ssl, request->data, request->len);
+    if ((size_t)n != request->len) {
       goto clean_ssl;
     }
 
-    n = sslRead(ssl, response, rSize - 1, recevSentinel, endTag);
-  } else if (connectionType == CONNECTION_TYPE_PLAIN) {
-    n = write(sockfd, request, len);
-    if ((size_t)n != len) {
+    n = sslRead(ssl, response->data, sizeof(response->data) - 1, recevSentinel,
+                endTag);
+  } else if (host->connectionType == CONNECTION_TYPE_PLAIN) {
+    n = write(sockfd, request, request->len);
+    if ((size_t)n != request->len) {
       goto clean_exit;
     }
 
-    n = read(sockfd, response, rSize - 1);
+    n = read(sockfd, response->data, response->len - 1);
   }
 
   ret = n > 0 ? n : 0;
 
 clean_ssl:
-  if (connectionType == CONNECTION_TYPE_SSL) {
+  if (host->connectionType == CONNECTION_TYPE_SSL) {
     SSL_shutdown(ssl);
     SSL_free(ssl);
   }
@@ -216,20 +215,14 @@ clean_exit:
   return ret;
 }
 #else
-
-int comSendReceive(unsigned char* response, const size_t rSize,
-                   const unsigned char* request, const size_t len,
-                   const char* url, const int port,
-                   ConnectionType connectionType,
-                   const ComSentinel recevSentinel, const char* endTag) {
+int comSendReceive(NetworkBuffer* response, NetworkBuffer* request, Host* host,
+                   int receiveTimeoutms, const ComSentinel recevSentinel,
+                   const char* endTag) {
   (void)response;
-  (void)rSize;
   (void)request;
-  (void)len;
-  (void)url;
-  (void)port;
+  (void)host;
+  (void)receiveTimeoutms;
   (void)recevSentinel;
-  (void)connectionType;
   (void)endTag;
 
   return 0;

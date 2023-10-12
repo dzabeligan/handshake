@@ -9,6 +9,7 @@
 extern "C" {
 #endif
 
+#include <ctype.h>
 #include <stdlib.h>
 
 /**
@@ -20,24 +21,42 @@ typedef enum {
   CONNECTION_TYPE_SSL,
 } ConnectionType;
 
+#define DEFAULT_TIMEOUT 120000
+
+/**
+ * @brief Host struct
+ * @url: URL of host
+ * @port: PORT
+ * @connectionType: connection type enum
+ * @receiveTimeout: connection timeout
+ *
+ */
+typedef struct Host {
+  char url[256];
+  int port;
+  ConnectionType connectionType;
+} Host;
+
+typedef struct NetworkBuffer {
+  unsigned char data[0x4000];
+  long len;
+} NetworkBuffer;
+
 typedef int (*ComSentinel)(unsigned char* packet, const int bytesRead,
                            const char* endTag);
+
 /**
  * @brief Function pointer to send and receive data
  *
  */
-typedef int (*ComSendReceive)(unsigned char* response, const size_t rSize,
-                              const unsigned char* request, const size_t len,
-                              const char* url, const int port,
-                              ConnectionType connectionType,
+typedef int (*ComSendReceive)(NetworkBuffer* response, NetworkBuffer* request,
+                              Host* host, int receiveTimeoutms,
                               const ComSentinel recevSentinel,
                               const char* endTag);
 
-int comSendReceive(unsigned char* response, const size_t rSize,
-                   const unsigned char* request, const size_t len,
-                   const char* url, const int port,
-                   ConnectionType connectionType,
-                   const ComSentinel recevSentinel, const char* endTag);
+int comSendReceive(NetworkBuffer* response, NetworkBuffer* request, Host* host,
+                   int receiveTimeoutms, const ComSentinel recevSentinel,
+                   const char* endTag);
 
 #ifdef __cplusplus
 }

@@ -37,9 +37,8 @@ static int buildTamsHttpRequest(char* requestBuf, size_t bufLen,
 
   pos +=
       snprintf(&requestBuf[pos], bufLen - pos, "POST /%s HTTP/1.1\r\n", path);
-  pos +=
-      snprintf(&requestBuf[pos], bufLen - pos, "Host: %s:%d\r\n",
-               handshake->handshakeHost.hostUrl, handshake->handshakeHost.port);
+  pos += snprintf(&requestBuf[pos], bufLen - pos, "Host: %s:%d\r\n",
+                  handshake->handshakeHost.url, handshake->handshakeHost.port);
   pos += snprintf(&requestBuf[pos], bufLen - pos, "User-Agent: lipman/%s\r\n",
                   TAMS_POST_VERSION);
   pos +=
@@ -95,27 +94,25 @@ error:
  * @return short
  */
 static short getMasterKey(Handshake_t* handshake) {
-  int len = -1;
-  char requestBuf[0x1000] = {'\0'};
-  unsigned char responseBuf[0x1000] = {'\0'};
+  NetworkBuffer request = {{'\0'}, 0};
+  NetworkBuffer response = {{'\0'}, 0};
   int ret = EXIT_FAILURE;
   const char* NEW_KEY_PATH = "tams/tams/devinterface/newkey.php";
 
   debug("MASTER");
-  len = buildTamsHttpRequest(requestBuf, sizeof(requestBuf) - 1, handshake,
-                             NULL, NEW_KEY_PATH);
-  check(len > 0, "Error Building TAMS Request");
-  debug("Request: '%s (%d)'", requestBuf, len);
+  request.len =
+      buildTamsHttpRequest((char*)request.data, sizeof(request.data) - 1,
+                           handshake, NULL, NEW_KEY_PATH);
+  check(response.len > 0, "Error Building TAMS Request");
+  debug("Request: '%s (%ld)'", request.data, request.len);
 
-  len = handshake->comSendReceive(
-      responseBuf, sizeof(responseBuf) - 1, (unsigned char*)requestBuf, len,
-      handshake->handshakeHost.hostUrl, handshake->handshakeHost.port,
-      handshake->handshakeHost.connectionType, handshake->comSentinel,
-      "</newkey>");
-  check(len > 0, "Error sending or receiving request");
-  debug("Response: '%s (%d)'", responseBuf, len);
+  response.len = handshake->comSendReceive(
+      &response, &request, &handshake->handshakeHost, DEFAULT_TIMEOUT,
+      handshake->comSentinel, "</newkey>");
+  check(response.len > 0, "Error sending or receiving request");
+  debug("Response: '%s (%ld)'", response.data, response.len);
 
-  check(parseMasterkeyResponse(handshake, (char*)responseBuf) == EXIT_SUCCESS,
+  check(parseMasterkeyResponse(handshake, (char*)response.data) == EXIT_SUCCESS,
         "Parse Error");
 
   ret = EXIT_SUCCESS;
@@ -186,27 +183,25 @@ error:
  * @return short
  */
 static short getSessionKey(Handshake_t* handshake) {
-  int len = -1;
-  char requestBuf[0x1000] = {'\0'};
-  unsigned char responseBuf[0x1000] = {'\0'};
+  NetworkBuffer request = {{'\0'}, 0};
+  NetworkBuffer response = {{'\0'}, 0};
   int ret = EXIT_FAILURE;
   const char* SESSION_KEY_PATH = "tams/tams/devinterface/getkeys.php";
 
   debug("SESSION");
-  len = buildTamsHttpRequest(requestBuf, sizeof(requestBuf) - 1, handshake,
-                             NULL, SESSION_KEY_PATH);
-  check(len > 0, "Error Building TAMS Request");
-  debug("Request: '%s (%d)'", requestBuf, len);
+  request.len =
+      buildTamsHttpRequest((char*)request.data, sizeof(request.data) - 1,
+                           handshake, NULL, SESSION_KEY_PATH);
+  check(request.len > 0, "Error Building TAMS Request");
+  debug("Request: '%s (%ld)'", request.data, request.len);
 
-  len = handshake->comSendReceive(
-      responseBuf, sizeof(responseBuf) - 1, (unsigned char*)requestBuf, len,
-      handshake->handshakeHost.hostUrl, handshake->handshakeHost.port,
-      handshake->handshakeHost.connectionType, handshake->comSentinel,
-      "</getkeys>");
-  check(len > 0, "Error sending or receiving request");
-  debug("Response: '%s (%d)'", responseBuf, len);
+  response.len = handshake->comSendReceive(
+      &response, &request, &handshake->handshakeHost, DEFAULT_TIMEOUT,
+      handshake->comSentinel, "</getkeys>");
+  check(response.len > 0, "Error sending or receiving request");
+  debug("Response: '%s (%ld)'", response.data, request.len);
 
-  check(parseGetKeysResponse(handshake, (char*)responseBuf) == EXIT_SUCCESS,
+  check(parseGetKeysResponse(handshake, (char*)response.data) == EXIT_SUCCESS,
         "Parse Error");
 
   ret = EXIT_SUCCESS;
@@ -334,9 +329,8 @@ error:
  * @return short
  */
 static short getParameters(Handshake_t* handshake) {
-  int len = -1;
-  char requestBuf[0x1000] = {'\0'};
-  unsigned char responseBuf[0x1000] = {'\0'};
+  NetworkBuffer request = {{'\0'}, 0};
+  NetworkBuffer response = {{'\0'}, 0};
   int ret = EXIT_FAILURE;
   char data[0x100] = {'\0'};
   const char* PARAMETERS_PATH = "tams/tams/devinterface/getparams.php";
@@ -344,22 +338,21 @@ static short getParameters(Handshake_t* handshake) {
   debug("PARAMETER");
   snprintf(data, sizeof(data) - 1, "ver=%s&serial=%s",
            handshake->appInfo.version, handshake->deviceInfo.posUid);
-  len = buildTamsHttpRequest(requestBuf, sizeof(requestBuf) - 1, handshake,
-                             data, PARAMETERS_PATH);
-  check(len > 0, "Error Building TAMS Request");
-  debug("Request: '%s (%d)'", requestBuf, len);
+  request.len =
+      buildTamsHttpRequest((char*)request.data, sizeof(request.data) - 1,
+                           handshake, data, PARAMETERS_PATH);
+  check(request.len > 0, "Error Building TAMS Request");
+  debug("Request: '%s (%ld)'", request.data, request.len);
 
-  len = handshake->comSendReceive(
-      responseBuf, sizeof(responseBuf) - 1, (unsigned char*)requestBuf, len,
-      handshake->handshakeHost.hostUrl, handshake->handshakeHost.port,
-      handshake->handshakeHost.connectionType, handshake->comSentinel,
-      "</param>");
-  check(len > 0, "Error sending or receiving request");
-  debug("Response: '%s (%d)'", responseBuf, len);
+  response.len = handshake->comSendReceive(
+      &response, &request, &handshake->handshakeHost, DEFAULT_TIMEOUT,
+      handshake->comSentinel, "</param>");
+  check(response.len > 0, "Error sending or receiving request");
+  debug("Response: '%s (%ld)'", response.data, response.len);
 
-  check(
-      parseGetParametersResponse(handshake, (char*)responseBuf) == EXIT_SUCCESS,
-      "Parse Error");
+  check(parseGetParametersResponse(handshake, (char*)response.data) ==
+            EXIT_SUCCESS,
+        "Parse Error");
 
   ret = EXIT_SUCCESS;
 error:
@@ -420,9 +413,8 @@ error:
  * @return short
  */
 static short getEftTotal(Handshake_t* handshake) {
-  int len = -1;
-  char requestBuf[0x1000] = {'\0'};
-  unsigned char responseBuf[0x1000] = {'\0'};
+  NetworkBuffer request = {{'\0'}, 0};
+  NetworkBuffer response = {{'\0'}, 0};
   int ret = EXIT_FAILURE;
   char data[0x100] = {'\0'};
   const char* EFT_TOTAL_PATH = "tams/eftpos/devinterface/efttotals.php";
@@ -433,21 +425,21 @@ static short getEftTotal(Handshake_t* handshake) {
            "RRV=%d",
            handshake->networkManagementResponse.parameters.batchNumber, 0, 0, 0,
            0, 0, 0, 0, 0, 0, 0);
-  len = buildTamsHttpRequest(requestBuf, sizeof(requestBuf) - 1, handshake,
-                             data, EFT_TOTAL_PATH);
-  check(len > 0, "Error Building TAMS Request");
-  debug("Request: '%s (%d)'", requestBuf, len);
+  request.len =
+      buildTamsHttpRequest((char*)request.data, sizeof(request.data) - 1,
+                           handshake, data, EFT_TOTAL_PATH);
+  check(request.len > 0, "Error Building TAMS Request");
+  debug("Request: '%s (%ld)'", request.data, request.len);
 
-  len = handshake->comSendReceive(
-      responseBuf, sizeof(responseBuf) - 1, (unsigned char*)requestBuf, len,
-      handshake->handshakeHost.hostUrl, handshake->handshakeHost.port,
-      handshake->handshakeHost.connectionType, handshake->comSentinel,
-      "</efttotals>");
-  check(len > 0, "Error sending or receiving request");
-  debug("Response: '%s (%d)'", responseBuf, len);
+  response.len = handshake->comSendReceive(
+      &response, &request, &handshake->handshakeHost, DEFAULT_TIMEOUT,
+      handshake->comSentinel, "</efttotals>");
+  check(response.len > 0, "Error sending or receiving request");
+  debug("Response: '%s (%ld)'", response.data, response.len);
 
-  check(parseGetEftTotalResponse(handshake, (char*)responseBuf) == EXIT_SUCCESS,
-        "Parse Error");
+  check(
+      parseGetEftTotalResponse(handshake, (char*)response.data) == EXIT_SUCCESS,
+      "Parse Error");
 
   ret = EXIT_SUCCESS;
 error:

@@ -70,7 +70,7 @@ const char* testHandshakeInit_mapTidTrue_dataNotSet() {
   handshake.platform = PLATFORM_NIBSS;
   handshake.mapDevice = HANDSHAKE_MAP_DEVICE_TRUE;
   strcpy(handshake.tid, "");
-  strcpy(handshake.mapDeviceHost.hostUrl, "basehuge.itexapp.com");
+  strcpy(handshake.mapDeviceHost.url, "basehuge.itexapp.com");
   handshake.mapDeviceHost.port = 443;
 
   Handshake(&handshake);
@@ -103,7 +103,7 @@ const char* test_HandshakeNibssAllMapDeviceTrue() {
   strcpy(handshake.simInfo.imsi, "621301234567890");
   handshake.simInfo.simType = SIM_TYPE_PUBLIC;
 
-  strcpy(handshake.mapDeviceHost.hostUrl, "basehuge.itexapp.com");
+  strcpy(handshake.mapDeviceHost.url, "basehuge.itexapp.com");
   handshake.mapDeviceHost.port = 443;
   handshake.mapDeviceHost.connectionType = CONNECTION_TYPE_SSL;
 
@@ -140,11 +140,11 @@ const char* test_HandshakeNibssAllMapDeviceFalse() {
   strcpy(handshake.simInfo.imsi, "621301234567890");
   handshake.simInfo.simType = SIM_TYPE_PUBLIC;
 
-  strcpy(handshake.handshakeHost.hostUrl, "basehuge.itexapp.com");
+  strcpy(handshake.handshakeHost.url, "basehuge.itexapp.com");
   handshake.handshakeHost.port = 5003;
   handshake.handshakeHost.connectionType = CONNECTION_TYPE_SSL;
   // needed if call home host is different from handshake host
-  strcpy(handshake.callHomeHost.hostUrl, "basehuge.itexapp.com");
+  strcpy(handshake.callHomeHost.url, "basehuge.itexapp.com");
   handshake.callHomeHost.port = 7003;
   handshake.callHomeHost.connectionType = CONNECTION_TYPE_SSL;
 
@@ -177,7 +177,7 @@ const char* test_HandshakeNibssMasterMapDeviceTrue() {
   strcpy(handshake.simInfo.imsi, "621301234567890");
   handshake.simInfo.simType = SIM_TYPE_PUBLIC;
 
-  strcpy(handshake.mapDeviceHost.hostUrl, "basehuge.itexapp.com");
+  strcpy(handshake.mapDeviceHost.url, "basehuge.itexapp.com");
   handshake.mapDeviceHost.port = 443;
   handshake.mapDeviceHost.connectionType = CONNECTION_TYPE_SSL;
 
@@ -204,7 +204,7 @@ const char* test_HandshakeNibssMasterMapDeviceFalse() {
 
   strcpy(handshake.tid, "2033GP24");
 
-  strcpy(handshake.handshakeHost.hostUrl, "basehuge.itexapp.com");
+  strcpy(handshake.handshakeHost.url, "basehuge.itexapp.com");
   handshake.handshakeHost.port = 5003;
   handshake.handshakeHost.connectionType = CONNECTION_TYPE_SSL;
 
@@ -243,7 +243,7 @@ const char* test_HandshakeNibssSessionMapDeviceTrue() {
   strcpy(handshake.simInfo.imsi, "621301234567890");
   handshake.simInfo.simType = SIM_TYPE_PUBLIC;
 
-  strcpy(handshake.mapDeviceHost.hostUrl, "basehuge.itexapp.com");
+  strcpy(handshake.mapDeviceHost.url, "basehuge.itexapp.com");
   handshake.mapDeviceHost.port = 443;
   handshake.mapDeviceHost.connectionType = CONNECTION_TYPE_SSL;
 
@@ -274,7 +274,7 @@ const char* test_HandshakeNibssSessionMapDeviceFalse() {
   strcpy((char*)handshake.networkManagementResponse.master.key,
          (char*)g_handshake.networkManagementResponse.master.key);
 
-  strcpy(handshake.handshakeHost.hostUrl, "basehuge.itexapp.com");
+  strcpy(handshake.handshakeHost.url, "basehuge.itexapp.com");
   handshake.handshakeHost.port = 5003;
   handshake.handshakeHost.connectionType = CONNECTION_TYPE_SSL;
 
@@ -313,7 +313,7 @@ const char* test_HandshakeNibssPinMapDeviceTrue() {
   strcpy(handshake.simInfo.imsi, "621301234567890");
   handshake.simInfo.simType = SIM_TYPE_PUBLIC;
 
-  strcpy(handshake.mapDeviceHost.hostUrl, "basehuge.itexapp.com");
+  strcpy(handshake.mapDeviceHost.url, "basehuge.itexapp.com");
   handshake.mapDeviceHost.port = 443;
   handshake.mapDeviceHost.connectionType = CONNECTION_TYPE_SSL;
 
@@ -345,7 +345,7 @@ const char* test_HandshakeNibssPinMapDeviceFalse() {
   strcpy((char*)handshake.networkManagementResponse.master.key,
          (char*)g_handshake.networkManagementResponse.master.key);
 
-  strcpy(handshake.handshakeHost.hostUrl, "basehuge.itexapp.com");
+  strcpy(handshake.handshakeHost.url, "basehuge.itexapp.com");
   handshake.handshakeHost.port = 5003;
   handshake.handshakeHost.connectionType = CONNECTION_TYPE_SSL;
 
@@ -386,7 +386,7 @@ const char* test_HandshakeNibssParametersMapDeviceTrue() {
   strcpy(handshake.simInfo.imsi, "621301234567890");
   handshake.simInfo.simType = SIM_TYPE_PUBLIC;
 
-  strcpy(handshake.mapDeviceHost.hostUrl, "basehuge.itexapp.com");
+  strcpy(handshake.mapDeviceHost.url, "basehuge.itexapp.com");
   handshake.mapDeviceHost.port = 443;
   handshake.mapDeviceHost.connectionType = CONNECTION_TYPE_SSL;
 
@@ -431,11 +431,11 @@ const char* test_HandshakeNibssParametersMapDeviceFalse() {
   strcpy(handshake.simInfo.imsi, "621301234567890");
   handshake.simInfo.simType = SIM_TYPE_PUBLIC;
 
-  strcpy(handshake.handshakeHost.hostUrl, "basehuge.itexapp.com");
+  strcpy(handshake.handshakeHost.url, "basehuge.itexapp.com");
   handshake.handshakeHost.port = 5003;
   handshake.handshakeHost.connectionType = CONNECTION_TYPE_SSL;
   // needed if call home host is different from handshake host
-  strcpy(handshake.callHomeHost.hostUrl, "basehuge.itexapp.com");
+  strcpy(handshake.callHomeHost.url, "basehuge.itexapp.com");
   handshake.callHomeHost.port = 7003;
   handshake.callHomeHost.connectionType = CONNECTION_TYPE_SSL;
 
@@ -477,7 +477,7 @@ const char* test_HandshakeNibssCallHomeMapDeviceTrue() {
   strcpy(handshake.simInfo.imsi, "621301234567890");
   handshake.simInfo.simType = SIM_TYPE_PUBLIC;
 
-  strcpy(handshake.mapDeviceHost.hostUrl, "basehuge.itexapp.com");
+  strcpy(handshake.mapDeviceHost.url, "basehuge.itexapp.com");
   handshake.mapDeviceHost.port = 443;
   handshake.mapDeviceHost.connectionType = CONNECTION_TYPE_SSL;
 
@@ -522,11 +522,11 @@ const char* test_HandshakeNibssCallHomeMapDeviceFalse() {
   strcpy(handshake.simInfo.imsi, "621301234567890");
   handshake.simInfo.simType = SIM_TYPE_PUBLIC;
 
-  strcpy(handshake.handshakeHost.hostUrl, "basehuge.itexapp.com");
+  strcpy(handshake.handshakeHost.url, "basehuge.itexapp.com");
   handshake.handshakeHost.port = 5003;
   handshake.handshakeHost.connectionType = CONNECTION_TYPE_SSL;
   // needed if call home host is different from handshake host
-  strcpy(handshake.callHomeHost.hostUrl, "basehuge.itexapp.com");
+  strcpy(handshake.callHomeHost.url, "basehuge.itexapp.com");
   handshake.callHomeHost.port = 7003;
   handshake.callHomeHost.connectionType = CONNECTION_TYPE_SSL;
 
@@ -560,11 +560,11 @@ const char* test_HandshakeTamsAllMapDeviceTrue() {
   strcpy(handshake.deviceInfo.model, "LaptopPort");
   strcpy(handshake.deviceInfo.posUid, "346228245");
 
-  strcpy(handshake.handshakeHost.hostUrl, "basehuge.itexapp.com");
+  strcpy(handshake.handshakeHost.url, "basehuge.itexapp.com");
   handshake.handshakeHost.port = 443;
   handshake.handshakeHost.connectionType = CONNECTION_TYPE_SSL;
 
-  strcpy(handshake.mapDeviceHost.hostUrl, "basehuge.itexapp.com");
+  strcpy(handshake.mapDeviceHost.url, "basehuge.itexapp.com");
   handshake.mapDeviceHost.port = 443;
   handshake.mapDeviceHost.connectionType = CONNECTION_TYPE_SSL;
 
@@ -596,7 +596,7 @@ const char* test_HandshakeTamsAllMapDeviceFalse() {
   strcpy(handshake.deviceInfo.model, "LaptopPort");
   strcpy(handshake.deviceInfo.posUid, "346228245");
 
-  strcpy(handshake.handshakeHost.hostUrl, "basehuge.itexapp.com");
+  strcpy(handshake.handshakeHost.url, "basehuge.itexapp.com");
   handshake.handshakeHost.port = 443;
   handshake.handshakeHost.connectionType = CONNECTION_TYPE_SSL;
 
@@ -628,7 +628,7 @@ const char* test_HandshakeTamsMasterMapDeviceFalse() {
   strcpy(handshake.deviceInfo.model, "LaptopPort");
   strcpy(handshake.deviceInfo.posUid, "346228245");
 
-  strcpy(handshake.handshakeHost.hostUrl, "basehuge.itexapp.com");
+  strcpy(handshake.handshakeHost.url, "basehuge.itexapp.com");
   handshake.handshakeHost.port = 443;
   handshake.handshakeHost.connectionType = CONNECTION_TYPE_SSL;
 
@@ -664,7 +664,7 @@ const char* test_HandshakeTamsSessionMapDeviceFalse() {
   strcpy(handshake.deviceInfo.model, "LaptopPort");
   strcpy(handshake.deviceInfo.posUid, "346228245");
 
-  strcpy(handshake.handshakeHost.hostUrl, "basehuge.itexapp.com");
+  strcpy(handshake.handshakeHost.url, "basehuge.itexapp.com");
   handshake.handshakeHost.port = 443;
   handshake.handshakeHost.connectionType = CONNECTION_TYPE_SSL;
 
@@ -698,7 +698,7 @@ const char* test_HandshakeTamsParametersMapDeviceFalse() {
   strcpy(handshake.deviceInfo.model, "LaptopPort");
   strcpy(handshake.deviceInfo.posUid, "346228245");
 
-  strcpy(handshake.handshakeHost.hostUrl, "basehuge.itexapp.com");
+  strcpy(handshake.handshakeHost.url, "basehuge.itexapp.com");
   handshake.handshakeHost.port = 443;
   handshake.handshakeHost.connectionType = CONNECTION_TYPE_SSL;
 
@@ -730,7 +730,7 @@ const char* test_HandshakeTamsEftTotalMapDeviceFalse() {
   strcpy(handshake.deviceInfo.model, "LaptopPort");
   strcpy(handshake.deviceInfo.posUid, "346228245");
 
-  strcpy(handshake.handshakeHost.hostUrl, "basehuge.itexapp.com");
+  strcpy(handshake.handshakeHost.url, "basehuge.itexapp.com");
   handshake.handshakeHost.port = 443;
   handshake.handshakeHost.connectionType = CONNECTION_TYPE_SSL;
 
@@ -768,11 +768,11 @@ const char* test_HandshakeNibssAllMapDeviceFalse_Ogunwole() {
   strcpy(handshake.simInfo.imsi, "621301234567890");
   handshake.simInfo.simType = SIM_TYPE_PUBLIC;
 
-  strcpy(handshake.handshakeHost.hostUrl, "16.170.207.247");
+  strcpy(handshake.handshakeHost.url, "16.170.207.247");
   handshake.handshakeHost.port = 5004;
   handshake.handshakeHost.connectionType = CONNECTION_TYPE_PLAIN;
   // needed if call home host is different from handshake host
-  strcpy(handshake.callHomeHost.hostUrl, "16.170.207.247");
+  strcpy(handshake.callHomeHost.url, "16.170.207.247");
   handshake.callHomeHost.port = 5004;
   handshake.callHomeHost.connectionType = CONNECTION_TYPE_PLAIN;
 
@@ -807,10 +807,10 @@ const char* test_HandshakeNibssAllMapDeviceFalse2058HIW1() {
   strcpy(handshake.simInfo.imsi, "621301234567890");
   handshake.simInfo.simType = SIM_TYPE_PUBLIC;
 
-  strcpy(handshake.mapDeviceHost.hostUrl, "basehuge.itexapp.com");
+  strcpy(handshake.mapDeviceHost.url, "basehuge.itexapp.com");
   handshake.mapDeviceHost.port = 443;
   handshake.mapDeviceHost.connectionType = CONNECTION_TYPE_SSL;
-  strcpy(handshake.handshakeHost.hostUrl, "197.253.19.75");
+  strcpy(handshake.handshakeHost.url, "197.253.19.75");
   handshake.handshakeHost.port = 5003;
   handshake.handshakeHost.connectionType = CONNECTION_TYPE_SSL;
 

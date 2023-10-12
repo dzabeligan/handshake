@@ -450,7 +450,8 @@ static short getNetworkDataHelper(unsigned char* responseBuf, size_t bufLen,
                                   Handshake_t* handshake,
                                   NetworkManagementType networkManagementType) {
   unsigned char packetBuf[0x1000] = {'\0'};
-  unsigned char requestBuf[0x1000] = {'\0'};
+  NetworkBuffer request = {{'\0'}, 0};
+  NetworkBuffer response = {{'\0'}, 0};
   int len = 0;
   short ret = EXIT_FAILURE;
 
@@ -460,22 +461,22 @@ static short getNetworkDataHelper(unsigned char* responseBuf, size_t bufLen,
   check(len > 0, "Error Building Packet");
   debug("Packet: '%s (%d)'", packetBuf, len);
 
-  snprintf((char*)requestBuf, sizeof(requestBuf) - 1, "%c%c%s", len >> 8, len,
-           packetBuf);
+  snprintf((char*)request.data, sizeof(request.data) - 1, "%c%c%s", len >> 8,
+           len, packetBuf);
+  request.len = len + 2;
 
   if (networkManagementType == NETWORK_MANAGEMENT_CALL_HOME) {
-    len = handshake->comSendReceive(
-        responseBuf, bufLen, requestBuf, len + 2,
-        handshake->callHomeHost.hostUrl, handshake->callHomeHost.port,
-        handshake->callHomeHost.connectionType, NULL, NULL);
+    response.len =
+        handshake->comSendReceive(&response, &request, &handshake->callHomeHost,
+                                  DEFAULT_TIMEOUT, NULL, NULL);
   } else {
-    len = handshake->comSendReceive(
-        responseBuf, bufLen, requestBuf, len + 2,
-        handshake->handshakeHost.hostUrl, handshake->handshakeHost.port,
-        handshake->handshakeHost.connectionType, NULL, NULL);
+    response.len = handshake->comSendReceive(&response, &request,
+                                             &handshake->handshakeHost,
+                                             DEFAULT_TIMEOUT, NULL, NULL);
   }
-  check(len > 0, "Error sending or receiving request");
-  debug("Response: '%s (%d) (%d)'", &responseBuf[2], len,
+  check(response.len > 0, "Error sending or receiving request");
+  memcpy(responseBuf, response.data, response.len);
+  debug("Response: '%s (%ld) (%d)'", &responseBuf[2], response.len,
         (responseBuf[0] << 8) + responseBuf[1]);
 
   ret = EXIT_SUCCESS;

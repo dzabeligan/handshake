@@ -38,9 +38,8 @@ static ssize_t buildTamsHomeRequest(char* requestBuf, size_t bufLen,
       TRANS_ADVICE_PATH, DEFAULT_TID, handshake->deviceInfo.posUid,
       handshake->appInfo.name, handshake->appInfo.version,
       handshake->deviceInfo.model);
-  pos +=
-      snprintf(&requestBuf[pos], bufLen - pos, "Host: %s:%d",
-               handshake->mapDeviceHost.hostUrl, handshake->mapDeviceHost.port);
+  pos += snprintf(&requestBuf[pos], bufLen - pos, "Host: %s:%d",
+                  handshake->mapDeviceHost.url, handshake->mapDeviceHost.port);
   pos += snprintf(&requestBuf[pos], bufLen - pos, "%s", "\r\n\r\n");
 
   return pos;
@@ -638,25 +637,23 @@ error:
  * @param handshake
  */
 void Handshake_MapDevice(Handshake_t* handshake) {
-  char requestBuf[0x1000] = {'\0'};
-  unsigned char responseBuf[0x1000] = {'\0'};
-  ssize_t pos = 0;
+  NetworkBuffer request = {{'\0'}, 0};
+  NetworkBuffer response = {{'\0'}, 0};
   int ret = -1;
 
   handshake->error.code = ERROR_CODE_HANDSHAKE_MAPTID_ERROR;
-  pos = buildTamsHomeRequest(requestBuf, sizeof(requestBuf) - 1, handshake);
-  check(pos > 0, "Error building TAMS request");
-  debug("Request: '%s' (%ld)", requestBuf, pos);
+  request.len = buildTamsHomeRequest((char*)request.data,
+                                     sizeof(request.data) - 1, handshake);
+  check(request.len > 0, "Error building TAMS request");
+  debug("Request: '%s' (%ld)", request.data, request.len);
 
-  ret = handshake->comSendReceive(
-      responseBuf, sizeof(responseBuf) - 1, (unsigned char*)requestBuf, pos,
-      handshake->mapDeviceHost.hostUrl, handshake->mapDeviceHost.port,
-      handshake->mapDeviceHost.connectionType, handshake->comSentinel,
-      "</efttran>");
-  check(ret > 0, "Error sending or receiving request");
-  debug("Response: '%s (%d)'", responseBuf, ret);
+  response.len = handshake->comSendReceive(
+      &response, &request, &handshake->mapDeviceHost, DEFAULT_TIMEOUT,
+      handshake->comSentinel, "</efttran>");
+  check(response.len > 0, "Error sending or receiving request");
+  debug("Response: '%s (%ld)'", response.data, response.len);
 
-  check(parseMapDeviceResponse(handshake, (char*)responseBuf) == EXIT_SUCCESS,
+  check(parseMapDeviceResponse(handshake, (char*)response.data) == EXIT_SUCCESS,
         "Parse Error");
   debug("TID after mapping: %s", handshake->tid);
 

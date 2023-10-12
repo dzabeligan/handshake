@@ -22,8 +22,7 @@
 static short checkMapDeviceData(Handshake_t* handshake) {
   return handshake->appInfo.name[0] && handshake->appInfo.version[0] &&
          handshake->deviceInfo.model[0] && handshake->deviceInfo.posUid[0] &&
-         handshake->mapDeviceHost.hostUrl[0] &&
-         handshake->mapDeviceHost.port != 0;
+         handshake->mapDeviceHost.url[0] && handshake->mapDeviceHost.port != 0;
 }
 
 /**
@@ -43,8 +42,7 @@ static short checkMandatoryFields(Handshake_t* handshake) {
          ((handshake->mapDevice == HANDSHAKE_MAP_DEVICE_TRUE &&
            checkMapDeviceData(handshake)) ||
           (handshake->mapDevice == HANDSHAKE_MAP_DEVICE_FALSE &&
-           handshake->handshakeHost.hostUrl[0] &&
-           handshake->handshakeHost.port));
+           handshake->handshakeHost.url[0] && handshake->handshakeHost.port));
 }
 
 /**
@@ -127,12 +125,12 @@ static void getHandshakeHostHelper(Handshake_t* handshake,
   SimType simType = handshake->simInfo.simType;
 
   if (simType == SIM_TYPE_PUBLIC) {
-    strncpy(handshake->handshakeHost.hostUrl, server->publicServer.ip,
-            sizeof(handshake->handshakeHost.hostUrl));
+    strncpy(handshake->handshakeHost.url, server->publicServer.ip,
+            sizeof(handshake->handshakeHost.url));
     handshake->handshakeHost.port = server->publicServer.port;
   } else if (simType == SIM_TYPE_PRIVATE) {
-    strncpy(handshake->handshakeHost.hostUrl, server->privateServer.ip,
-            sizeof(handshake->handshakeHost.hostUrl));
+    strncpy(handshake->handshakeHost.url, server->privateServer.ip,
+            sizeof(handshake->handshakeHost.url));
     handshake->handshakeHost.port = server->privateServer.port;
   }
 }
@@ -166,8 +164,7 @@ static void Handshake_GetHosts(Handshake_t* handshake) {
       handshake->tamsResponse.servers.middlewareServerType;
   int fromTamsResponse = 0;
 
-  if (!handshake->handshakeHost.hostUrl[0] ||
-      handshake->handshakeHost.port == 0) {
+  if (!handshake->handshakeHost.url[0] || handshake->handshakeHost.port == 0) {
     if (middlewareServerType == MIDDLEWARE_SERVER_TYPE_POSVAS) {
       getHandshakeHost(handshake, &handshake->tamsResponse.servers.posvas);
     } else if (middlewareServerType == MIDDLEWARE_SERVER_TYPE_EPMS) {
@@ -179,33 +176,31 @@ static void Handshake_GetHosts(Handshake_t* handshake) {
     fromTamsResponse = 1;
   }
 
-  if (!handshake->callHomeHost.hostUrl[0] ||
-      handshake->callHomeHost.port == 0) {
+  if (!handshake->callHomeHost.url[0] || handshake->callHomeHost.port == 0) {
     if (fromTamsResponse) {
       if (middlewareServerType == MIDDLEWARE_SERVER_TYPE_POSVAS) {
-        strncpy(handshake->callHomeHost.hostUrl,
+        strncpy(handshake->callHomeHost.url,
                 handshake->tamsResponse.servers.callhomePosvas.ip,
-                sizeof(handshake->callHomeHost.hostUrl));
+                sizeof(handshake->callHomeHost.url));
         handshake->callHomeHost.port =
             handshake->tamsResponse.servers.callhomePosvas.port;
       } else if (middlewareServerType == MIDDLEWARE_SERVER_TYPE_EPMS) {
-        strncpy(handshake->callHomeHost.hostUrl,
+        strncpy(handshake->callHomeHost.url,
                 handshake->tamsResponse.servers.callhome.ip,
-                sizeof(handshake->callHomeHost.hostUrl));
+                sizeof(handshake->callHomeHost.url));
         handshake->callHomeHost.port =
             handshake->tamsResponse.servers.callhome.port;
       }
       handshake->callHomeHost.connectionType =
           handshake->tamsResponse.servers.connectionType;
     } else {
-      strncpy(handshake->callHomeHost.hostUrl, handshake->handshakeHost.hostUrl,
-              sizeof(handshake->callHomeHost.hostUrl));
+      strncpy(handshake->callHomeHost.url, handshake->handshakeHost.url,
+              sizeof(handshake->callHomeHost.url));
       handshake->callHomeHost.port = handshake->handshakeHost.port;
       handshake->callHomeHost.connectionType =
           handshake->handshakeHost.connectionType;
     }
-    handshake->callHomeHost.receiveTimeout =
-        handshake->tamsResponse.servers.callhomeTime;
+    handshake->callHomeTime = handshake->tamsResponse.servers.callhomeTime;
   }
 }
 
@@ -286,9 +281,9 @@ void Handshake(Handshake_t* handshake) {
   }
 
   Handshake_GetHosts(handshake);
-  debug("Handshake host: %s:%d", handshake->handshakeHost.hostUrl,
+  debug("Handshake host: %s:%d", handshake->handshakeHost.url,
         handshake->handshakeHost.port);
-  debug("Callhome host: %s:%d", handshake->callHomeHost.hostUrl,
+  debug("Callhome host: %s:%d", handshake->callHomeHost.url,
         handshake->callHomeHost.port);
 
   Handshake_Run(handshake);
