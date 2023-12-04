@@ -27,8 +27,8 @@ static short ascToBcd2(unsigned char* bcd, const short bcdLen,
   return i;
 }
 
-static short bcdToAsc2(unsigned char* asc, const int ascLen, const unsigned char* bcd,
-                const int bcdLen) {
+static short bcdToAsc2(unsigned char* asc, const int ascLen,
+                       const unsigned char* bcd, const int bcdLen) {
   int i = 0;
   short pos = 0;
 
@@ -63,16 +63,49 @@ static short checkKeyValue(const char* key, const char* kcv) {
   return strncmp(kcv, actualCheckValueStr, 6) == 0;
 }
 
-int main(int argc, char** argv) {
-  if (argc != 3) {
-    printf("Usage: %s <key> <kcv>\n", argv[0]);
-    return 1;
-  }
+static void getClearKeyHelper(char* clearKey, const int size,
+                              const char* encryptedData, const char* key) {
+  unsigned char keyBcd[16];
+  unsigned char encrytedDataBcd[16];
+  unsigned char clearKeyBcd[16];
 
-  if (checkKeyValue(argv[1], argv[2])) {
-    printf("Key is valid\n");
+  ascToBcd2(keyBcd, sizeof(keyBcd), (const char*)key);
+  ascToBcd2(encrytedDataBcd, sizeof(encrytedDataBcd),
+            (const char*)encryptedData);
+
+  des3_ecb_decrypt(clearKeyBcd, encrytedDataBcd, sizeof(encrytedDataBcd),
+                   keyBcd, sizeof(keyBcd));
+  bcdToAsc2((unsigned char*)clearKey, size, clearKeyBcd, sizeof(clearKeyBcd));
+}
+
+int main(int argc, char** argv) {
+  // handle both cases
+  // 1. keyCheck <key> <kcv>
+  // 2. keyCheck -e <key> <encryptedData> to get clear key
+  if (argc == 3) {
+    if (strcmp(argv[1], "-e") == 0) {
+      char clearKey[33] = {'\0'};
+      getClearKeyHelper(clearKey, sizeof(clearKey), argv[3], argv[2]);
+      printf("%s\n", clearKey);
+    } else {
+      if (checkKeyValue(argv[1], argv[2])) {
+        printf("Key is valid\n");
+      } else {
+        printf("Key is invalid\n");
+      }
+    }
+  } else if (argc == 4) {
+    if (strcmp(argv[1], "-e") == 0) {
+      char clearKey[33] = {'\0'};
+      getClearKeyHelper(clearKey, sizeof(clearKey), argv[3], argv[2]);
+      printf("%s\n", clearKey);
+    } else {
+      printf("Usage: keyCheck <key> <kcv>\n");
+      printf("Usage: keyCheck -e <key> <encryptedData>\n");
+    }
   } else {
-    printf("Key is invalid\n");
+    printf("Usage: keyCheck <key> <kcv>\n");
+    printf("Usage: keyCheck -e <key> <encryptedData>\n");
   }
 
   return 0;
