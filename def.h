@@ -1,8 +1,12 @@
 /**
- * File: EftDef.h
- * --------------
- * Defines new types for eft.h
- * @author Opeyemi Adeyemi Sunday, Itex Interated Services.
+ * @file def.h
+ * @author Elijah Balogun (elijah.balogun@cyberpay.net.ng)
+ * @brief
+ * @version 0.1
+ * @date 2024-03-15
+ *
+ * @copyright Copyright (c) 2024
+ *
  */
 
 #ifndef __EFT_DEF_INCLUDED__
@@ -23,6 +27,7 @@ extern "C" {
  */
 typedef enum {
   ERROR_CODE_NO_ERROR,
+  ERROR_CODE_ALREADY_INITIALIZED,
   ERROR_CODE_HANDSHAKE_INIT_ERROR,
   ERROR_CODE_HANDSHAKE_MAPTID_ERROR,
   ERROR_CODE_HANDSHAKE_RUN_ERROR,
@@ -43,7 +48,7 @@ typedef struct Error {
 
 typedef enum Platform {
   PLATFORM_NIBSS,
-  PLATFORM_TAMS,
+  PLATFORM_MAX,
 } Platform;
 
 #ifdef __cplusplus

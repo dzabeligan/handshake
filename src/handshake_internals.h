@@ -1,6 +1,6 @@
 /**
  * @file handshake_internals.h
- * @author Elijah Balogun (elijah.balogun@iisysgroup.com)
+ * @author Elijah Balogun (elijah.balogun@cyberpay.net.ng)
  * @brief Declares interface for Handshake
  * @version 0.1
  * @date 2023-02-23
@@ -16,6 +16,7 @@ extern "C" {
 #endif
 
 #include "../c8583/C8583.h"
+#include "../cJSON/cJSON.h"
 #include "../c8583/FieldNames.h"
 #include "../dbg.h"
 #include "../des/des.h"
@@ -47,14 +48,11 @@ typedef struct HandshakeOperations {
   GetNetworkManagementData doCallHome;
   /**< Function pointer for retrieving the CAPK. */
   GetNetworkManagementData getCapk;
-  /**< Function pointer for retrieving the EFT total. */
-  GetNetworkManagementData getEftTotal;
 } HandshakeOperations;
 
 void bindNibss(HandshakeOperations* handshakeInternals);
-void bindTams(HandshakeOperations* handshakeInternals);
 
-void Handshake_MapDevice(Handshake_t* handshake);
+void Handshake_GetDeviceConfig(Handshake_t* handshake);
 
 #ifdef __cplusplus
 }

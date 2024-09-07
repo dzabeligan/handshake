@@ -1,6 +1,6 @@
 /**
  * @file handshake.h
- * @author Elijah Balogun (elijah.balogun@iisysgroup.com)
+ * @author Elijah Balogun (elijah.balogun@cyberpay.net.ng)
  * @brief Declares interface for Handshake
  * @version 0.1
  * @date 2023-02-07
@@ -17,7 +17,14 @@ extern "C" {
 
 #include <stddef.h>
 
-#include "../EftDef.h"
+#include "../def.h"
+
+#ifndef FALSE   /* in case these macros already exist */
+#define FALSE 0 /* values of boolean */
+#endif
+#ifndef TRUE
+#define TRUE 1
+#endif
 
 /**
  * @brief Handshake operations
@@ -30,52 +37,9 @@ typedef enum {
   HANDSHAKE_OPERATIONS_PIN_KEY = 1 << 2,
   HANDSHAKE_OPERATIONS_PARAMETER = 1 << 3,
   HANDSHAKE_OPERATIONS_CALLHOME = 1 << 4,
-  HANDSHAKE_OPERATIONS_EFT_TOTAL = 1 << 5,
-  HANDSHAKE_OPERATIONS_CAPK = 1 << 6,
+  HANDSHAKE_OPERATIONS_CAPK = 1 << 5,
   HANDSHAKE_OPERATIONS_ALL = 0xFF,
 } HandshakeOperationBitmap;
-
-/**
- * @brief PTAD Key type
- *
- */
-typedef enum {
-  PTAD_KEY_UNKNOWN,
-  PTAD_KEY_POSVAS,
-  PTAD_KEY_EPMS,
-  PTAD_KEY_NIBSS,
-  PTAD_KEY_TAMS,
-} PtadKey;
-
-/**
- * @brief Map Device bool
- *
- */
-typedef enum {
-  HANDSHAKE_MAP_DEVICE_FALSE,
-  HANDSHAKE_MAP_DEVICE_TRUE,
-} HandshakeMapDevice;
-
-/**
- * @brief Middleware server type
- *
- */
-typedef enum {
-  MIDDLEWARE_SERVER_TYPE_UNKNOWN,
-  MIDDLEWARE_SERVER_TYPE_POSVAS,
-  MIDDLEWARE_SERVER_TYPE_EPMS,
-} MiddlewareServerType;
-
-/**
- * @brief Terminal application type
- *
- */
-typedef enum {
-  TERMINAL_APP_TYPE_UNKNOWN,
-  TERMINAL_APP_TYPE_MERCHANT,
-  TERMINAL_APP_TYPE_AGENT,
-  TERMINAL_APP_TYPE_CONVERTED,
-} TerminalAppType;
 
 /**
  * @brief Sim type
@@ -112,6 +76,7 @@ struct appInfo {
 struct deviceInfo {
   char posUid[32];
   char model[32];
+  char brand[32];
 };
 
 /**
@@ -126,39 +91,6 @@ struct simInfo {
 };
 
 /**
- * @brief Server
- * @ip: server ip
- * @port: server port
- *
- */
-typedef struct Server {
-  char ip[65];
-  int port;
-} Server;
-
-/**
- * @brief Private and public address of a server
- * @privateServer: private address
- * @publicServer: public address
- *
- */
-typedef struct PrivatePublicServer {
-  Server privateServer;
-  Server publicServer;
-} PrivatePublicServer;
-
-/**
- * @brief Middleware server
- * @ssl: ssl server
- * @plain: plain server
- *
- */
-typedef struct MiddlewareServer {
-  PrivatePublicServer ssl;
-  PrivatePublicServer plain;
-} MiddlewareServer;
-
-/**
  * @brief TAMS Response from Map TID
  * @accountToDebit: account to debit
  * @accountNumber: account number assigned to device
@@ -170,96 +102,36 @@ typedef struct MiddlewareServer {
  * @merchantAddress: merchant address
  * @merchantName: merchant name
  * @notificationId: notification ID
- * @phone: phone number
- * @posSupport: POS support
+ * @posSupportPhone: posSupportPhone number
+ * @posSupportName: POS support
  * @preConnect: pre connect
  * @rrn: RRN
  * @stampDuty: stamp duty
  * @stampDutyThreshold: stamp duty threshold
  * @stampLabel: stamp label
- * @terminalAppType: terminal app type
  * @userId: user ID
- * @terminals: struct terminals
- * @servers: Servers
  *
  */
-typedef struct TAMSResponse {
-  char accountToDebit[16];
-  char accountNumber[16];
-  short accountSelectionType;
-  char aggregatorName[128];
-  char balance[16];
-  char commision[16];
+typedef struct TMSResponse {
+  char adminPin[8];
+  char bankName[32];
+  short changePin;
+  char componentKey[33];
+  char currencyCode[8];
+  char currencySymbol[8];
+  char customerCopyLabel[24];
   char email[64];
+  char footer[40];
+  char footnote[40];
+  char logoPath[128];
   char merchantAddress[128];
+  char merchantCopyLabel[24];
   char merchantName[128];
-  char notificationId[64];
-  char phone[32];
-  char posSupport[64];
-  char preConnect[8];
-  char rrn[16];
-  char stampDuty[16];
-  char stampDutyThreshold[16];
-  char stampLabel[64];
-  TerminalAppType terminalAppType;
-  char userId[64];
-
-  /**
-   * @brief Terminals
-   * @amp: amp
-   * @moreFun: morefun
-   * @newLand: newland
-   * @newPos: newpos
-   * @nexGo: nexgo
-   * @pax: pax
-   * @paySharp: paysharp
-   * @verifone: verifone
-   *
-   */
-  struct {
-    char amp[5];
-    char moreFun[5];
-    char newLand[5];
-    char newPos[5];
-    char nexGo[5];
-    char pax[5];
-    char paySharp[5];
-    char verifone[5];
-  } terminals;
-
-  /**
-   * @brief Servers
-   * @connectionType: connection type
-   * @middlewareServerType: middleware server type
-   * @tams: TAMS
-   * @callhome: Call Home EPMS
-   * @callhomePosvas: Call Home POSVAS
-   * @callhomeTime: receive timeout for call home
-   * @remoteUpgrade: remote upgrade
-   * @epms: EPMS
-   * @posvas: POSVAS
-   * @vasurl: vas url
-   *
-   */
-  struct {
-    ConnectionType connectionType;
-
-    MiddlewareServerType middlewareServerType;
-
-    Server tams;
-    Server callhome;
-    Server callhomePosvas;
-
-    int callhomeTime;
-
-    PrivatePublicServer remoteUpgrade;
-
-    MiddlewareServer epms;
-    MiddlewareServer posvas;
-
-    char vasUrl[64];
-  } servers;
-} TAMSResponse;
+  char merchantPin[8];
+  char posSupportName[64];
+  char posSupportPhone[32];
+  short shouldPrintLogo;
+} TMSResponse;
 
 /**
  * @brief Key
@@ -285,18 +157,13 @@ typedef struct Key {
  *
  */
 typedef struct Parameters {
-  int batchNumber;
   char callHomeTime[25];
   char cardAcceptorID[41];
   char countryCode[8];
   char currencyCode[8];
   char currencySymbol[8];
-  long endOfDay;
-  char footer[40];
-  char header[40];
   char merchantCategoryCode[8];
   char merchantNameAndLocation[41];
-  short resetPin;
   char serverDateAndTime[20];
   char timeout[34];
 } Parameters;
@@ -317,21 +184,21 @@ typedef struct NetworkManagementResponse {
   Key pin;
   Parameters parameters;
 } NetworkManagementResponse;
+
 /**
  * @brief Handshake
  * @tid: Terminal ID
  * @appInfo: Application information
  * @deviceInfo: Device information
  * @simInfo: SIM Information
- * @mapDevice: should map device
+ * @shouldGetDeviceConfig: should map device
  * @operations: operations to perform
  * @platform: platform
- * @ptadKey: ptad key type
  * @callHomeHost: call home host
  * @handshakeHost: handshake host
- * @mapDeviceHost: map device host
+ * @deviceConfigHost: map device host
  * @networkManagementResponse: network management response
- * @tamsResponse: TAMS response
+ * @tmsResponse: TAMS response
  * @comSendReceive: send and receive function pointer
  * @getCallHomeData: get call home data function pointer
  * @comSentinel: com sentinel function pointer
@@ -347,20 +214,19 @@ typedef struct Handshake_t {
   struct simInfo simInfo;
 
   // enums
-  HandshakeMapDevice mapDevice;
+  short shouldGetDeviceConfig;
   HandshakeOperationBitmap operations;
   Platform platform;
-  PtadKey ptadKey;
 
   // hosts
   int callHomeTime;
   Host callHomeHost;
   Host handshakeHost;
-  Host mapDeviceHost;
+  Host deviceConfigHost;
 
   // responses
   NetworkManagementResponse networkManagementResponse;
-  TAMSResponse tamsResponse;
+  TMSResponse tmsResponse;
 
   // callback
   ComSendReceive comSendReceive;
@@ -373,10 +239,8 @@ typedef struct Handshake_t {
 #define HANDSHAKE_INIT_DATA \
   { '\0' }
 
-void logTamsResponse(TAMSResponse* tamsResponse);
-void logTerminals(TAMSResponse* tamsResponse);
-void logServers(TAMSResponse* tamsResponse);
-void logKey(Key* key, const char* title);
+void logTMSResponse(const TMSResponse* tmsResponse);
+void logKey(const Key* key, const char* title);
 void logParameter(Parameters* parameters);
 void logNetworkManagementResponse(
     NetworkManagementResponse* networkManagementResponse);

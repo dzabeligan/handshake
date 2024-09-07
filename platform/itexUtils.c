@@ -94,26 +94,13 @@ short isApprovedResponse(const char* responseCode) {
 short generateMac(unsigned char* mac, const unsigned char* key,
                   const int keySize, const unsigned char* packet,
                   const int packetSize) {
-  sha256_context Context;
-  unsigned char keyBin[16];
-  unsigned char digest[32];
-  int i = 0;
-  short pos = 0;
   (void)keySize;
+  (void)packetSize;
 
-  sha256_starts(&Context);
+  calculateSHA256Digest((char*)packet, (char*)mac, (char*)key);
+  debug("MAC: %s", mac);
 
-  ascToBcd(keyBin, sizeof(keyBin), (char*)key);
-
-  sha256_update(&Context, keyBin, sizeof(keyBin));
-  sha256_update(&Context, (unsigned char*)packet, packetSize);
-  sha256_finish(&Context, digest);
-
-  for (i = 0; i < 32; i++) {
-    pos += sprintf((char*)&mac[pos], "%02X", digest[i]);
-  }
-
-  return pos;
+  return strlen((char*)mac);
 }
 
 static void strToLower(char* convertBuffer, const char* buffer,

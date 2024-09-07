@@ -1,6 +1,6 @@
 /**
  * @file handshake_nibss.c
- * @author Elijah Balogun (elijah.balogun@iisysgroup.com)
+ * @author Elijah Balogun (elijah.balogun@cyberpay.net.ng)
  * @brief Implements NIBSS Handshake
  * @version 0.1
  * @date 2023-02-19
@@ -131,7 +131,7 @@ error:
  * @param networkManagementType
  * @return int
  */
-static int buildDE63(char* buf, size_t bufLen, Handshake_t* handshake,
+static int buildDE63(char* buf, size_t bufLen, const Handshake_t* handshake,
                      NetworkManagementType networkManagementType) {
   short ret = EXIT_FAILURE;
   char state[0x10000] = {'\0'};
@@ -146,28 +146,6 @@ static int buildDE63(char* buf, size_t bufLen, Handshake_t* handshake,
   ret = EXIT_SUCCESS;
 error:
   return ret;
-}
-
-/**
- * @brief Get the Ptad Key object
- *
- * @param ptadKey
- * @return const char*
- */
-static const char* getPtadKey(PtadKey ptadKey) {
-  switch (ptadKey) {
-    case PTAD_KEY_EPMS:
-      return "DBCC87EE50A6810682FAD28B1190F578";
-    case PTAD_KEY_POSVAS:
-      return "F9F6FF09D77B6A78595541DB63D821FA";
-    case PTAD_KEY_NIBSS:
-      return "DBEECACCB4210977ACE73A1D873CA59F";
-    case PTAD_KEY_TAMS:
-      return "ACE73A1D873CA59FDBCC87EE50A68106";
-    case PTAD_KEY_UNKNOWN:
-    default:
-      return NULL;
-  }
 }
 
 /**
@@ -228,10 +206,8 @@ static void getClearKeyHelper(char* clearKey, const int size,
 static void getDecryptionKey(Handshake_t* handshake,
                              NetworkManagementType networkManagementType,
                              char* decryptionKey, size_t keyBufLen) {
-  if (handshake->ptadKey == PTAD_KEY_UNKNOWN) return;
-
   if (networkManagementType == NETWORK_MANAGEMENT_MASTER_KEY) {
-    strncpy(decryptionKey, getPtadKey(handshake->ptadKey), keyBufLen);
+    strncpy(decryptionKey, handshake->tmsResponse.componentKey, keyBufLen);
   } else {
     strncpy(decryptionKey,
             (char*)handshake->networkManagementResponse.master.key, keyBufLen);
@@ -746,7 +722,8 @@ static short getParameters(Handshake_t* handshake) {
 
 static short doCallHome(Handshake_t* handshake) {
   debug("%s", networkManagementTypeToString(NETWORK_MANAGEMENT_CALL_HOME));
-  return getNetworkData(handshake, NETWORK_MANAGEMENT_CALL_HOME);
+  // return getNetworkData(handshake, NETWORK_MANAGEMENT_CALL_HOME);
+  return EXIT_SUCCESS;
 }
 
 /**
@@ -761,18 +738,6 @@ static short getCapk(Handshake_t* handshake) {
 }
 
 /**
- * @brief Get the Eft Total object
- *
- * @param handshake
- * @return short
- */
-static short getEftTotal(Handshake_t* handshake) {
-  (void)handshake;
-  debug("%s", networkManagementTypeToString(NETWORK_MANAGEMENT_UNKNOWN));
-  return EXIT_SUCCESS;
-}
-
-/**
  * @brief Bind NIBSS
  *
  * @param handshake_internals
@@ -784,5 +749,4 @@ void bindNibss(HandshakeOperations* handshake_internals) {
   handshake_internals->getParameters = getParameters;
   handshake_internals->doCallHome = doCallHome;
   handshake_internals->getCapk = getCapk;
-  handshake_internals->getEftTotal = getEftTotal;
 }
