@@ -1,0 +1,27 @@
+{
+    "data": [
+        {
+            "id": 210,
+            "payer_account_name": "Odafe Godwin Otokina",
+            "channel": "NIP Inward (Credit) - Internet Banking",
+            "type": "C",
+            "created_at": "2025-03-04T10:11:53.053Z",
+            "merchant_name": "Cyberpay Limited",
+            "amount": "2000.00",
+            "paid_at": "2025-02-17 02:10:00 PM",
+            "payer_bank_code": "000013",
+            "account": "1190052783",
+            "payer_account_number": "0167739486",
+            "details": "Otokina Godwin/NIP FROM for Godwin/E-TICKETING",
+            "reference": "00BDKSK746XX9778827899",
+            "bank_merchant_id": 2,
+            "bank_transfer_client": "zenithbanktransfer"
+        }
+    ],
+    "pageInfo": {
+        "total": 1,
+        "currentPage": 1,
+        "perPage": 200,
+        "totalPages": 1
+    }
+}

@@ -38,6 +38,7 @@ typedef enum {
   HANDSHAKE_OPERATIONS_PARAMETER = 1 << 3,
   HANDSHAKE_OPERATIONS_CALLHOME = 1 << 4,
   HANDSHAKE_OPERATIONS_CAPK = 1 << 5,
+  HANDSHAKE_OPERATIONS_AID = 1 << 6,
   HANDSHAKE_OPERATIONS_ALL = 0xFF,
 } HandshakeOperationBitmap;
 
@@ -236,8 +237,7 @@ typedef struct Handshake_t {
   Error error;
 } Handshake_t;
 
-#define HANDSHAKE_INIT_DATA \
-  { '\0' }
+#define HANDSHAKE_INIT_DATA {'\0'}
 
 void logTMSResponse(const TMSResponse* tmsResponse);
 void logKey(const Key* key, const char* title);

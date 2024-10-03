@@ -24,6 +24,7 @@ typedef enum {
   NETWORK_MANAGEMENT_PARAMETER_DOWNLOAD,
   NETWORK_MANAGEMENT_CALL_HOME,
   NETWORK_MANAGEMENT_CAPK_DOWNLOAD,
+  NETWORK_MANAGEMENT_AID_DOWNLOAD,
   NETWORK_MANAGEMENT_UNKNOWN,
 } NetworkManagementType;
 
@@ -48,6 +49,8 @@ static const char* networkManagementTypeToProcessCode(
       return "9D";
     case NETWORK_MANAGEMENT_CAPK_DOWNLOAD:
       return "9E";
+    case NETWORK_MANAGEMENT_AID_DOWNLOAD:
+      return "9F";
     default:
       return NULL;
   }
@@ -74,6 +77,8 @@ static const char* networkManagementTypeToString(
       return "CALL HOME";
     case NETWORK_MANAGEMENT_CAPK_DOWNLOAD:
       return "CAPK DOWNLOAD";
+    case NETWORK_MANAGEMENT_AID_DOWNLOAD:
+      return "AID DOWNLOAD";
     default:
       return "";
   }
@@ -136,8 +141,9 @@ static int buildDE63(char* buf, size_t bufLen, const Handshake_t* handshake,
   short ret = EXIT_FAILURE;
   char state[0x10000] = {'\0'};
 
-  check_debug(networkManagementType == NETWORK_MANAGEMENT_CAPK_DOWNLOAD,
-              "Build DE 63 for only `CAPK Download`");
+  check_debug(networkManagementType == NETWORK_MANAGEMENT_CAPK_DOWNLOAD ||
+                  networkManagementType == NETWORK_MANAGEMENT_AID_DOWNLOAD,
+              "Build DE 63 for only `CAPK Download` or `AID Download`");
 
   snprintf(buf, bufLen, "%s%03d%s", "01",
            (int)strlen(handshake->deviceInfo.posUid),
@@ -738,6 +744,17 @@ static short getCapk(Handshake_t* handshake) {
 }
 
 /**
+ * @brief Get the Capk object
+ *
+ * @param handshake
+ * @return short
+ */
+static short getAid(Handshake_t* handshake) {
+  debug("%s", networkManagementTypeToString(NETWORK_MANAGEMENT_AID_DOWNLOAD));
+  return getNetworkData(handshake, NETWORK_MANAGEMENT_AID_DOWNLOAD);
+}
+
+/**
  * @brief Bind NIBSS
  *
  * @param handshake_internals
@@ -749,4 +766,5 @@ void bindNibss(HandshakeOperations* handshake_internals) {
   handshake_internals->getParameters = getParameters;
   handshake_internals->doCallHome = doCallHome;
   handshake_internals->getCapk = getCapk;
+  handshake_internals->getAid = getAid;
 }

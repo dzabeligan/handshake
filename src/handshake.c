@@ -160,6 +160,10 @@ static void Handshake_Run(Handshake_t* handshake) {
     check(handshakeInternals.getCapk(handshake) == EXIT_SUCCESS,
           "Error Getting CAPK");
   }
+  if (handshake->operations & HANDSHAKE_OPERATIONS_CAPK) {
+    check(handshakeInternals.getAid(handshake) == EXIT_SUCCESS,
+          "Error Getting AID");
+  }
 
   handshake->error.code = ERROR_CODE_NO_ERROR;
   memset(handshake->error.message, '\0', sizeof(handshake->error.message));

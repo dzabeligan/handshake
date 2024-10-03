@@ -224,9 +224,9 @@ static short getTmsResponse(Handshake_t* handshake, const cJSON* root) {
   strncpy(handshake->tmsResponse.email, item->valuestring,
           sizeof(handshake->tmsResponse.email));
 
-  check((item = cJSON_GetObjectItemCaseSensitive(root, "contactphone")) &&
-            cJSON_IsString(item),
-        "Unable to get contactphone");
+//   check((item = cJSON_GetObjectItemCaseSensitive(root, "contactphone")) &&
+//             cJSON_IsString(item),
+//         "Unable to get contactphone");
   strncpy(handshake->tmsResponse.posSupportPhone, item->valuestring,
           sizeof(handshake->tmsResponse.posSupportPhone));
 
@@ -274,7 +274,7 @@ static short parseGetDeviceConfigResponse(Handshake_t* handshake,
   root = cJSON_Parse(strchr(response, '{'));
   check_mem(root);
 
-  check(getPosStatus(root), "Get Device Config Status is not OK");
+  check(getPosStatus(handshake, root), "Get Device Config Status is not OK");
 
   check((item = cJSON_GetObjectItemCaseSensitive(root, "tid")) &&
             cJSON_IsString(item),

@@ -16,8 +16,8 @@ extern "C" {
 #endif
 
 #include "../c8583/C8583.h"
-#include "../cJSON/cJSON.h"
 #include "../c8583/FieldNames.h"
+#include "../cJSON/cJSON.h"
 #include "../dbg.h"
 #include "../des/des.h"
 #include "../ezxml/ezxml.h"
@@ -48,6 +48,8 @@ typedef struct HandshakeOperations {
   GetNetworkManagementData doCallHome;
   /**< Function pointer for retrieving the CAPK. */
   GetNetworkManagementData getCapk;
+  /**< Function pointer for retrieving the Aid. */
+  GetNetworkManagementData getAid;
 } HandshakeOperations;
 
 void bindNibss(HandshakeOperations* handshakeInternals);

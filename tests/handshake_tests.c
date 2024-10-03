@@ -8,7 +8,7 @@
 #include "minunit.h"
 
 Handshake_t g_handshake = HANDSHAKE_INIT_DATA;
-const char* TMS_HOST = "tms.cyberpay.net.ng";
+const char* TMS_HOST = "tms-test.cyberpay.net.ng";
 const int TMS_PORT = 443;
 
 static int isResponseSentinel(unsigned char* packet, const int bytesRead,
@@ -97,7 +97,8 @@ const char* test_HandshakeNibssAllMapDeviceTrue() {
   strcpy(handshake.appInfo.version, "0.0.1");
 
   strcpy(handshake.deviceInfo.model, "D210");
-  strcpy(handshake.deviceInfo.posUid, "5C242845");
+  strcpy(handshake.deviceInfo.posUid, "P051200187041");
+  // 98220415900441 98221207907423
   strcpy(handshake.deviceInfo.brand, "PAX");
 
   strcpy(handshake.simInfo.imsi, "621301234567890");

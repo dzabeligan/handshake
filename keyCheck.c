@@ -83,19 +83,13 @@ int main(int argc, char** argv) {
   // 1. keyCheck <key> <kcv>
   // 2. keyCheck -e <key> <encryptedData> to get clear key
   if (argc == 3) {
-    if (strcmp(argv[1], "-e") == 0) {
-      char clearKey[33] = {'\0'};
-      getClearKeyHelper(clearKey, sizeof(clearKey), argv[3], argv[2]);
-      printf("%s\n", clearKey);
+    if (checkKeyValue(argv[1], argv[2])) {
+      printf("Key is valid\n");
     } else {
-      if (checkKeyValue(argv[1], argv[2])) {
-        printf("Key is valid\n");
-      } else {
-        printf("Key is invalid\n");
-      }
+      printf("Key is invalid\n");
     }
   } else if (argc == 4) {
-    if (strcmp(argv[1], "-e") == 0) {
+    if (strcmp(argv[1], "-d") == 0) {
       char clearKey[33] = {'\0'};
       getClearKeyHelper(clearKey, sizeof(clearKey), argv[3], argv[2]);
       printf("%s\n", clearKey);
